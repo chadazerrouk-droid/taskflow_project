@@ -1,96 +1,79 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const dotenv = require('dotenv');
+const cors = require('cors');
+const auth = require('./middleware/auth');
+const tasksRoutes = require('./routes/tasks');
+
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
+// Middleware
 app.use(express.json());
+app.use(cors());
 
-// IMPORTER LES MODÈLES
-const User = require('./models/User');
-const Project = require('./models/Project');
-const Task = require('./models/Task');
+// Routes
+app.use('/api/tasks', tasksRoutes);
 
-// IMPORTER LE MIDDLEWARE
-const authMiddleware = require('./middleware/auth');
+// Route test
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK' });
+});
 
-// Connexion à MongoDB
-const MONGODB_URI = 'mongodb://localhost:27017/taskflow';
-
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ Connecté à MongoDB'))
-  .catch(err => console.error('❌ Erreur MongoDB:', err));
-
-// ========== ROUTE REGISTER (créer un compte) ==========
+// Route register et login (déjà existantes)
 app.post('/api/register', async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
-
-    // Vérifier si l'utilisateur existe déjà
+    const { name, email, password } = req.body;
+    const User = require('./models/User');
+    const bcrypt = require('bcryptjs');
+    
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'Cet email est déjà utilisé' });
+      return res.status(400).json({ message: 'Email déjà utilisé' });
     }
-
-    // Créer le nouvel utilisateur (le mot de passe sera hashé automatiquement par le schema)
-    const user = new User({ fullName, email, password });
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ name, email, password: hashedPassword });
     await user.save();
-
-    res.status(201).json({ message: 'Utilisateur créé avec succès', userId: user._id });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    
+    res.status(201).json({ message: 'Utilisateur créé avec succès' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
-// ========== ROUTE LOGIN (se connecter) ==========
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Vérifier si l'utilisateur existe
+    const User = require('./models/User');
+    const bcrypt = require('bcryptjs');
+    const jwt = require('jsonwebtoken');
+    
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
     }
-
-    // Vérifier le mot de passe
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
+    
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
       return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
     }
-
-    // Créer le token JWT
-    const token = jwt.sign(
-      { userId: user._id, email: user.email, fullName: user.fullName },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.json({
-      message: 'Connexion réussie',
-      token,
-      user: { id: user._id, fullName: user.fullName, email: user.email }
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
-// ========== ROUTE TEST (publique) ==========
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Serveur fonctionne' });
-});
+// Connexion MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('✅ Connecté à MongoDB'))
+  .catch(err => console.error('❌ Erreur MongoDB:', err));
 
-// ========== ROUTE TEST PROTÉGÉE ==========
-app.get('/api/protected', authMiddleware, (req, res) => {
-  res.json({ message: 'Accès autorisé', user: req.user });
-});
-
+// Démarrer le serveur
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Serveur démarré sur le port ${PORT}`);
+  console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
 });
