@@ -2,6 +2,7 @@ const Task = require('../models/task');
 const Project = require('../models/Project');
 
 // @route   GET /api/tasks
+// @desc    Récupérer toutes les tâches (avec filtres projet/membre)
 const getTasks = async (req, res) => {
   try {
     const { projectId } = req.query;
@@ -10,6 +11,7 @@ const getTasks = async (req, res) => {
     if (projectId) {
       filter.project = projectId;
     } else {
+      // Par défaut, l'utilisateur voit les tâches des projets où il est owner ou membre
       const projects = await Project.find({
         $or: [{ owner: req.user.id }, { members: req.user.id }]
       }).select('_id');
@@ -28,6 +30,7 @@ const getTasks = async (req, res) => {
 };
 
 // @route   POST /api/tasks
+// @desc    Créer une tâche
 const createTask = async (req, res) => {
   try {
     const { title, description, priority, project, assignedTo } = req.body;
@@ -45,6 +48,7 @@ const createTask = async (req, res) => {
 };
 
 // @route   PUT /api/tasks/:id
+// @desc    Mettre à jour une tâche
 const updateTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -65,6 +69,7 @@ const updateTask = async (req, res) => {
 };
 
 // @route   DELETE /api/tasks/:id
+// @desc    Supprimer une tâche
 const deleteTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -77,6 +82,7 @@ const deleteTask = async (req, res) => {
 };
 
 // @route   PATCH /api/tasks/:id/status
+// @desc    Changer uniquement le statut
 const updateTaskStatus = async (req, res) => {
   try {
     const { status } = req.body;
