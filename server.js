@@ -9,6 +9,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
+mongoose
+  .connect("mongodb://admin:example@localhost:27017/taskflow?authSource=admin")
+  .then(() => console.log("✅ MongoDB connecté"))
+  .catch((err) => console.error("❌ MongoDB erreur:", err));
+
+
+
 app.post("/api/auth/register", (req, res) => {
   console.log("📝 Register called:", req.body);
   res.status(201).json({
@@ -24,19 +32,27 @@ app.post("/api/auth/login", (req, res) => {
   });
 });
 
-// Route test
 app.get("/", (req, res) => {
   res.send("TaskFlow API is running");
 });
 
-// ============================================
-// FIN ROUTES TEMPORAIRES
-// ============================================
+
+
+const taskRoutes = require("./routes/tasks");
+app.use("/api/tasks", taskRoutes);
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📌 Routes temporaires actives :`);
-  console.log(`   POST /api/auth/register`);
-  console.log(`   POST /api/auth/login`);
+  console.log(`📌 Routes actives :`);
+  console.log(`   POST /api/auth/register (temporaire)`);
+  console.log(`   POST /api/auth/login (temporaire)`);
+  console.log(`   GET  /api/tasks`);
+  console.log(`   POST /api/tasks`);
+  console.log(`   GET  /api/tasks/:id`);
+  console.log(`   PUT  /api/tasks/:id`);
+  console.log(`   DELETE /api/tasks/:id`);
+  console.log(`   PATCH /api/tasks/:id/status`);
 });
