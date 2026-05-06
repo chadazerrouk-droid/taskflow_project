@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Task = require('../models/Task');
 const Project = require('../models/Project');
-//const auth = require('../middleware/auth');
+const auth = require('../middleware/auth');
+const User = require('../models/User');
 
 // Toutes les routes nécessitent authentification
 //router.use(auth);
@@ -83,6 +84,26 @@ router.delete('/:id', async (req, res) => {
     res.json({ message: 'Tâche supprimée' });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+// PATCH /api/tasks/:id/assign
+router.patch('/:id/assign', async (req, res) => {
+  try {
+    const { assignedTo } = req.body;
+
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      { assignedTo },
+      { new: true, runValidators: true }
+    ).populate('assignedTo', 'fullName email');
+
+    if (!task) {
+      return res.status(404).json({ message: 'Tâche non trouvée' });
+    }
+
+    res.json(task);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 module.exports = router;
