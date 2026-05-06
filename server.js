@@ -24,7 +24,7 @@ app.get('/api/health', (req, res) => {
 // Route register et login (déjà existantes)
 app.post('/api/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { fullName, email, password } = req.body;
     const User = require('./models/User');
     const bcrypt = require('bcryptjs');
     
@@ -34,7 +34,7 @@ app.post('/api/register', async (req, res) => {
     }
     
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword });
+    const user = new User({ fullName, email, password: hashedPassword });
     await user.save();
     
     res.status(201).json({ message: 'Utilisateur créé avec succès' });
@@ -66,7 +66,35 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
+// Dashboard route
+app.get('/api/dashboard', async (req, res) => {
+  try {
+    const Task = require('./models/Task');
+    const Project = require('./models/Project');
+    
+    const userId = "69fa66bdd3708f7e4a44ba89";
+    
+    const totalActiveProjects = await Project.countDocuments({ status: 'actif' });
+    const assignedTasks = await Task.countDocuments({ assignedTo: userId });
+    const completedTasks = await Task.countDocuments({ assignedTo: userId, status: 'terminé' });
+    
+    // Tâches en retard : date limite dépassée ET status != 'terminé'
+    // Pour l'instant on fait sans date limite (on ajoutera après)
+    const lateTasks = await Task.countDocuments({ 
+      assignedTo: userId, 
+      status: { $ne: 'terminé' }
+    });
+    
+    res.json({
+      totalActiveProjects,
+      assignedTasks,
+      completedTasks,
+      lateTasks
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 // Connexion MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ Connecté à MongoDB'))
