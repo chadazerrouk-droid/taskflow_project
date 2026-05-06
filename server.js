@@ -71,25 +71,39 @@ app.get('/api/dashboard', async (req, res) => {
   try {
     const Task = require('./models/Task');
     const Project = require('./models/Project');
+    const mongoose = require('mongoose');
     
-    const userId = "69fa66bdd3708f7e4a44ba89";
+    const userId = new mongoose.Types.ObjectId("69fa66bdd3708f7e4a44ba89");
     
-    const totalActiveProjects = await Project.countDocuments({ status: 'actif' });
-    const assignedTasks = await Task.countDocuments({ assignedTo: userId });
-    const completedTasks = await Task.countDocuments({ assignedTo: userId, status: 'terminé' });
+    const taskAggregation = await Task.aggregate([
+      { $match: { assignedTo: userId } },
+      { $group: {
+          _id: null,
+          totalAssigned: { $sum: 1 },
+          completed: { 
+            $sum: { $cond: [{ $eq: ["$status", "terminé"] }, 1, 0] }
+          },
+          notCompleted: { 
+            $sum: { $cond: [{ $ne: ["$status", "terminé"] }, 1, 0] }
+          }
+        }
+      }
+    ]);
     
-    // Tâches en retard : date limite dépassée ET status != 'terminé'
-    // Pour l'instant on fait sans date limite (on ajoutera après)
-    const lateTasks = await Task.countDocuments({ 
-      assignedTo: userId, 
-      status: { $ne: 'terminé' }
-    });
+    const projectAggregation = await Project.aggregate([
+      { $match: { status: "actif" } },
+      { $group: {
+          _id: null,
+          total: { $sum: 1 }
+        }
+      }
+    ]);
     
     res.json({
-      totalActiveProjects,
-      assignedTasks,
-      completedTasks,
-      lateTasks
+      totalActiveProjects: projectAggregation[0]?.total || 0,
+      assignedTasks: taskAggregation[0]?.totalAssigned || 0,
+      completedTasks: taskAggregation[0]?.completed || 0,
+      lateTasks: taskAggregation[0]?.notCompleted || 0
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
