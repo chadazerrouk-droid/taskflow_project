@@ -1,5 +1,5 @@
 const Project = require('../models/Project');
-const Task = require('../models/Task');
+const Task = require('../models/task');
 
 // @route   GET /api/dashboard
 // @desc    Récupérer les métriques pour le tableau de bord
