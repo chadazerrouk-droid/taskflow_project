@@ -3,6 +3,7 @@ const router = express.Router();
 const Task = require("../models/Task");
 const auth = require("../middleware/auth");
 
+// ➕ CRÉER une tâche
 router.post("/", auth, async (req, res) => {
   try {
     const task = new Task(req.body);
@@ -13,22 +14,20 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
+// 📖 LIRE toutes les tâches (SANS populate)
 router.get("/", auth, async (req, res) => {
   try {
-    const tasks = await Task.find()
-      .populate("assignedTo", "fullName email")
-      .populate("project", "title");
+    const tasks = await Task.find();
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
+// 🔍 LIRE une tâche spécifique (SANS populate)
 router.get("/:id", auth, async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id)
-      .populate("assignedTo", "fullName email")
-      .populate("project", "title");
+    const task = await Task.findById(req.params.id);
     if (!task) {
       return res.status(404).json({ message: "Tâche non trouvée" });
     }
@@ -38,6 +37,7 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
+// ✏️ MODIFIER une tâche
 router.put("/:id", auth, async (req, res) => {
   try {
     const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
@@ -53,6 +53,7 @@ router.put("/:id", auth, async (req, res) => {
   }
 });
 
+// 🗑️ SUPPRIMER une tâche
 router.delete("/:id", auth, async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
@@ -65,6 +66,7 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 
+// 🔄 CHANGER le statut
 router.patch("/:id/status", auth, async (req, res) => {
   try {
     const { status } = req.body;
