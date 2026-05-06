@@ -6,20 +6,19 @@ const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 
-// Charger les variables d'environnement
 dotenv.config();
-
-// Connexion à MongoDB
 connectDB();
 
 const app = express();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3001', 'http://localhost:5000'],
+  credentials: true
+}));
 app.use(express.json());
-app.use(express.static('public'));   // ← AJOUT ICI
 
-// Routes
+// Routes API
 app.get('/', (req, res) => {
   res.send('API TaskFlow est en ligne 🚀');
 });
