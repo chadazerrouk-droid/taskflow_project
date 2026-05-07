@@ -14,7 +14,7 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-// 📖 LIRE toutes les tâches (SANS populate)
+// 📖 LIRE toutes les tâches
 router.get("/", auth, async (req, res) => {
   try {
     const tasks = await Task.find();
@@ -24,7 +24,7 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// 🔍 LIRE une tâche spécifique (SANS populate)
+// 🔍 LIRE une tâche spécifique
 router.get("/:id", auth, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -73,10 +73,30 @@ router.patch("/:id/status", auth, async (req, res) => {
     if (!["à faire", "en cours", "terminé"].includes(status)) {
       return res.status(400).json({ message: "Statut invalide" });
     }
-
     const task = await Task.findByIdAndUpdate(
       req.params.id,
       { status },
+      { new: true },
+    );
+    if (!task) {
+      return res.status(404).json({ message: "Tâche non trouvée" });
+    }
+    res.json(task);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// 👥 ASSIGNER une tâche (SANS populate)
+router.patch("/:id/assign", auth, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ message: "userId est requis" });
+    }
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      { assignedTo: userId },
       { new: true },
     );
     if (!task) {
