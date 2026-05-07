@@ -2,463 +2,261 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskFlow - Nouvelle tâche</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
         }
-
         .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .card {
+            max-width: 500px;
+            margin: auto;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-
-        .card-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
+        h1 {
             text-align: center;
+            color: #333;
         }
-
-        .card-header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        .card-header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-
-        .card-body {
-            padding: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
+            margin-top: 10px;
+            font-weight: bold;
         }
-
-        label .required {
-            color: #e74c3c;
-            margin-left: 4px;
-        }
-
         input, select, textarea {
             width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 14px;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 25px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #666;
-        }
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-
-        .btn-danger {
-            background: #fee;
-            color: #e74c3c;
-        }
-
-        .btn-danger:hover {
-            background: #fdd;
-        }
-
-        .restore-banner {
-            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-            border-radius: 12px;
-            padding: 15px 20px;
-            margin-bottom: 25px;
-            display: none;
-            animation: slideDown 0.3s ease;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .restore-banner p {
-            margin-bottom: 12px;
-            font-weight: 600;
-            color: #6c5ce7;
-        }
-
-        .restore-banner .btn-group {
-            margin-top: 0;
-            gap: 10px;
-        }
-
-        .restore-banner .btn {
-            flex: none;
-            padding: 8px 16px;
-            font-size: 14px;
-        }
-
-        .message {
-            padding: 12px 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: none;
-            animation: slideDown 0.3s ease;
-        }
-
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border-left: 4px solid #28a745;
-            display: block;
-        }
-
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border-left: 4px solid #dc3545;
-            display: block;
-        }
-
-        .save-indicator {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #28a745;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 600;
-            opacity: 0;
-            transition: opacity 0.3s;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            pointer-events: none;
-            z-index: 1000;
-        }
-
-        .info-text {
-            font-size: 12px;
-            color: #999;
+            padding: 8px;
             margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
         }
-
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .restore-box {
+            background-color: #fff3cd;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .restore-box button {
+            width: auto;
+            margin-right: 10px;
+            background-color: #ffc107;
+            color: #333;
+        }
         hr {
             margin: 20px 0;
-            border: none;
-            border-top: 1px solid #e0e0e0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="card">
-            <div class="card-header">
-                <h1>✨ Créer une nouvelle tâche</h1>
-                <p>Remplissez le formulaire ci-dessous</p>
-            </div>
-            <div class="card-body">
-                <div id="message"></div>
-                
-                <div id="restoreBanner" class="restore-banner">
-                    <p>💾 Un brouillon sauvegardé a été trouvé !</p>
-                    <div class="btn-group">
-                        <button id="restoreBtn" class="btn btn-primary">🔄 Restaurer</button>
-                        <button id="discardBtn" class="btn btn-secondary">🗑️ Ignorer</button>
-                    </div>
-                </div>
-                
-                <form id="taskForm">
-                    <div class="form-group">
-                        <label>Titre <span class="required">*</span></label>
-                        <input type="text" id="title" placeholder="Ex: Implémenter l'authentification" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea id="description" placeholder="Décrivez la tâche en détail..."></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Priorité</label>
-                        <select id="priority">
-                            <option value="basse">🟢 Basse</option>
-                            <option value="moyenne">🟡 Moyenne</option>
-                            <option value="haute">🔴 Haute</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Statut</label>
-                        <select id="status">
-                            <option value="à faire">⏳ À faire</option>
-                            <option value="en cours">🔄 En cours</option>
-                            <option value="terminé">✅ Terminé</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>ID du Projet <span class="required">*</span></label>
-                        <input type="text" id="projectId" placeholder="69f88efb92178d2d46906e4a" required>
-                        <div class="info-text">💡 ID du projet auquel cette tâche appartient</div>
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button type="submit" class="btn btn-primary">✅ Créer la tâche</button>
-                        <button type="button" id="clearBtn" class="btn btn-secondary">🗑️ Effacer brouillon</button>
-                    </div>
-                </form>
-                
-                <hr>
-                
-                <div class="info-text" style="text-align: center;">
-                    💾 Les brouillons sont sauvegardés automatiquement
-                </div>
-            </div>
+        <h1>Créer une tâche</h1>
+        
+        <div id="restoreBox" class="restore-box">
+            <p>💾 Un brouillon sauvegardé a été trouvé.</p>
+            <button id="restoreBtn">Restaurer</button>
+            <button id="discardBtn">Ignorer</button>
         </div>
+        
+        <form id="taskForm">
+            <label>Titre *</label>
+            <input type="text" id="title" placeholder="Ex: Faire le rapport" required>
+            
+            <label>Description</label>
+            <textarea id="description" rows="3" placeholder="Détails de la tâche..."></textarea>
+            
+            <label>Priorité</label>
+            <select id="priority">
+                <option value="basse">Basse</option>
+                <option value="moyenne" selected>Moyenne</option>
+                <option value="haute">Haute</option>
+            </select>
+            
+            <label>Statut</label>
+            <select id="status">
+                <option value="à faire">À faire</option>
+                <option value="en cours">En cours</option>
+                <option value="terminé">Terminé</option>
+            </select>
+            
+            <label>ID du projet *</label>
+            <input type="text" id="projectId" placeholder="69f88efb92178d2d46906e4a" required>
+            
+            <button type="submit">Créer la tâche</button>
+        </form>
+        
+        <hr>
+        <div id="message"></div>
+        <p style="font-size: 12px; color: #666; text-align: center;">
+            💾 Sauvegarde automatique du brouillon dans votre navigateur
+        </p>
     </div>
-
-    <div id="saveIndicator" class="save-indicator">💾 Sauvegardé</div>
 
     <script>
         const API_URL = 'http://localhost:5000/api/tasks';
-        const PROJECT_ID_KEY = 'taskflow_draft_projectId';
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentProjectId = urlParams.get('projectId') || localStorage.getItem(PROJECT_ID_KEY) || '';
         
         function getDraftKey(projectId) {
-            return `taskflow_draft_${projectId || 'default'}`;
-        }
-        
-        const titleInput = document.getElementById('title');
-        const descriptionInput = document.getElementById('description');
-        const prioritySelect = document.getElementById('priority');
-        const statusSelect = document.getElementById('status');
-        const projectIdInput = document.getElementById('projectId');
-        const form = document.getElementById('taskForm');
-        const messageDiv = document.getElementById('message');
-        const restoreBanner = document.getElementById('restoreBanner');
-        const restoreBtn = document.getElementById('restoreBtn');
-        const discardBtn = document.getElementById('discardBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const saveIndicator = document.getElementById('saveIndicator');
-        
-        if (currentProjectId) {
-            projectIdInput.value = currentProjectId;
-        }
-        
-        function showMessage(type, text) {
-            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
-            setTimeout(() => {
-                messageDiv.innerHTML = '';
-            }, 3000);
+            return 'task_draft_' + projectId;
         }
         
         function autoSave() {
-            const projectId = projectIdInput.value.trim();
+            let projectId = document.getElementById('projectId').value.trim();
             if (!projectId) return;
             
-            const draft = {
-                title: titleInput.value,
-                description: descriptionInput.value,
-                priority: prioritySelect.value,
-                status: statusSelect.value,
+            let draft = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                priority: document.getElementById('priority').value,
+                status: document.getElementById('status').value,
                 projectId: projectId,
-                savedAt: new Date().toISOString()
+                date: new Date().toISOString()
             };
             
-            const draftKey = getDraftKey(projectId);
-            localStorage.setItem(draftKey, JSON.stringify(draft));
-            
-            saveIndicator.style.opacity = '1';
-            setTimeout(() => {
-                saveIndicator.style.opacity = '0';
-            }, 1000);
+            let key = getDraftKey(projectId);
+            localStorage.setItem(key, JSON.stringify(draft));
+            console.log('Brouillon sauvegardé');
         }
         
-        titleInput.addEventListener('input', autoSave);
-        descriptionInput.addEventListener('input', autoSave);
-        prioritySelect.addEventListener('change', autoSave);
-        statusSelect.addEventListener('change', autoSave);
-        projectIdInput.addEventListener('input', autoSave);
-        
-        function checkForDraft() {
-            const projectId = projectIdInput.value.trim();
+        function checkDraft() {
+            let projectId = document.getElementById('projectId').value.trim();
             if (!projectId) return;
             
-            const draftKey = getDraftKey(projectId);
-            const savedDraft = localStorage.getItem(draftKey);
+            let key = getDraftKey(projectId);
+            let saved = localStorage.getItem(key);
             
-            if (savedDraft) {
-                restoreBanner.style.display = 'block';
+            if (saved) {
+                document.getElementById('restoreBox').style.display = 'block';
             } else {
-                restoreBanner.style.display = 'none';
+                document.getElementById('restoreBox').style.display = 'none';
             }
         }
         
         function restoreDraft() {
-            const projectId = projectIdInput.value.trim();
-            const draftKey = getDraftKey(projectId);
-            const savedDraft = localStorage.getItem(draftKey);
+            let projectId = document.getElementById('projectId').value.trim();
+            let key = getDraftKey(projectId);
+            let saved = localStorage.getItem(key);
             
-            if (savedDraft) {
-                const draft = JSON.parse(savedDraft);
-                titleInput.value = draft.title || '';
-                descriptionInput.value = draft.description || '';
-                prioritySelect.value = draft.priority || 'moyenne';
-                statusSelect.value = draft.status || 'à faire';
-                projectIdInput.value = draft.projectId || projectId;
+            if (saved) {
+                let draft = JSON.parse(saved);
+                document.getElementById('title').value = draft.title || '';
+                document.getElementById('description').value = draft.description || '';
+                document.getElementById('priority').value = draft.priority || 'moyenne';
+                document.getElementById('status').value = draft.status || 'à faire';
+                document.getElementById('projectId').value = draft.projectId || projectId;
                 
-                showMessage('success', '✅ Brouillon restauré avec succès !');
-                restoreBanner.style.display = 'none';
+                document.getElementById('restoreBox').style.display = 'none';
+                showMessage('success', 'Brouillon restauré');
             }
         }
         
         function discardDraft() {
-            const projectId = projectIdInput.value.trim();
-            const draftKey = getDraftKey(projectId);
-            localStorage.removeItem(draftKey);
-            restoreBanner.style.display = 'none';
-            showMessage('success', '🗑️ Brouillon ignoré.');
+            let projectId = document.getElementById('projectId').value.trim();
+            let key = getDraftKey(projectId);
+            localStorage.removeItem(key);
+            document.getElementById('restoreBox').style.display = 'none';
+            showMessage('success', 'Brouillon ignoré');
         }
         
-        async function submitTask(event) {
-            event.preventDefault();
+        function showMessage(type, text) {
+            let msgDiv = document.getElementById('message');
+            msgDiv.innerHTML = '<div class="message ' + type + '">' + text + '</div>';
+            setTimeout(() => {
+                msgDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        async function submitTask(e) {
+            e.preventDefault();
             
-            const taskData = {
-                title: titleInput.value,
-                description: descriptionInput.value,
-                priority: prioritySelect.value,
-                status: statusSelect.value,
-                project: projectIdInput.value
+            let taskData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                priority: document.getElementById('priority').value,
+                status: document.getElementById('status').value,
+                project: document.getElementById('projectId').value
             };
             
             if (!taskData.title || !taskData.project) {
-                showMessage('error', '❌ Le titre et l\'ID du projet sont obligatoires !');
+                showMessage('error', 'Le titre et l\'ID projet sont obligatoires');
                 return;
             }
             
             try {
-                const response = await fetch(API_URL, {
+                let response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(taskData)
                 });
                 
                 if (response.ok) {
-                    const result = await response.json();
-                    showMessage('success', `✅ Tâche créée avec succès ! ID: ${result._id}`);
+                    let result = await response.json();
+                    showMessage('success', 'Tâche créée ! ID: ' + result._id);
                     
-                    const projectId = projectIdInput.value.trim();
-                    const draftKey = getDraftKey(projectId);
-                    localStorage.removeItem(draftKey);
+                    // Supprimer le brouillon
+                    let projectId = document.getElementById('projectId').value.trim();
+                    localStorage.removeItem(getDraftKey(projectId));
                     
-                    titleInput.value = '';
-                    descriptionInput.value = '';
-                    prioritySelect.value = 'moyenne';
-                    statusSelect.value = 'à faire';
-                    projectIdInput.value = '';
-                    restoreBanner.style.display = 'none';
+                    // Vider le formulaire
+                    document.getElementById('title').value = '';
+                    document.getElementById('description').value = '';
+                    document.getElementById('priority').value = 'moyenne';
+                    document.getElementById('status').value = 'à faire';
+                    document.getElementById('projectId').value = '';
                 } else {
-                    const error = await response.json();
-                    showMessage('error', `❌ Erreur: ${error.message}`);
+                    let error = await response.json();
+                    showMessage('error', 'Erreur: ' + error.message);
                 }
             } catch (error) {
-                showMessage('error', `❌ Erreur: ${error.message}`);
+                showMessage('error', 'Erreur: ' + error.message);
             }
         }
         
-        function clearDraft() {
-            const projectId = projectIdInput.value.trim();
-            if (projectId) {
-                const draftKey = getDraftKey(projectId);
-                localStorage.removeItem(draftKey);
-                showMessage('success', '🗑️ Brouillon effacé !');
-                restoreBanner.style.display = 'none';
-            }
-        }
+        // Écouter les événements
+        document.getElementById('taskForm').addEventListener('submit', submitTask);
+        document.getElementById('restoreBtn').addEventListener('click', restoreDraft);
+        document.getElementById('discardBtn').addEventListener('click', discardDraft);
         
-        form.addEventListener('submit', submitTask);
-        restoreBtn.addEventListener('click', restoreDraft);
-        discardBtn.addEventListener('click', discardDraft);
-        clearBtn.addEventListener('click', clearDraft);
-        projectIdInput.addEventListener('change', checkForDraft);
-        
-        checkForDraft();
+        document.getElementById('title').addEventListener('input', autoSave);
+        document.getElementById('description').addEventListener('input', autoSave);
+        document.getElementById('priority').addEventListener('change', autoSave);
+        document.getElementById('status').addEventListener('change', autoSave);
+        document.getElementById('projectId').addEventListener('input', function() {
+            autoSave();
+            checkDraft();
+        });
     </script>
 </body>
 </html>
