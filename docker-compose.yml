@@ -1,0 +1,16 @@
+services:
+  mongodb:
+    image: mongo:6
+    container_name: taskflow-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: taskflow
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
