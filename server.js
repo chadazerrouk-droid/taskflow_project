@@ -9,13 +9,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
 mongoose
   .connect("mongodb://admin:example@localhost:27017/taskflow?authSource=admin")
   .then(() => console.log("✅ MongoDB connecté"))
   .catch((err) => console.error("❌ MongoDB erreur:", err));
-
-
 
 app.post("/api/auth/register", (req, res) => {
   console.log("📝 Register called:", req.body);
@@ -36,12 +33,12 @@ app.get("/", (req, res) => {
   res.send("TaskFlow API is running");
 });
 
-
-
 const taskRoutes = require("./routes/tasks");
 app.use("/api/tasks", taskRoutes);
 
-
+// ✅ Route dashboard (J5)
+const dashboardRoutes = require("./routes/dashboard");
+app.use("/api/dashboard", dashboardRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
@@ -55,4 +52,5 @@ app.listen(PORT, () => {
   console.log(`   PUT  /api/tasks/:id`);
   console.log(`   DELETE /api/tasks/:id`);
   console.log(`   PATCH /api/tasks/:id/status`);
+  console.log(`   GET  /api/dashboard`); // ← Nouvelle ligne
 });
