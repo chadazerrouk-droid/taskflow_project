@@ -3,7 +3,7 @@ exports.createTask = async(req,res) =>{
     const{title , description , assignedTo} = req.body;
 
     try{
-        const task = new task({
+        const task = new Task({
             title,
             description,
             assignedTo
@@ -14,10 +14,21 @@ exports.createTask = async(req,res) =>{
             message: "Task crée avec succès",
             task
         });
-        }catch(error){
-            res.status(500).json({
-                message: "Erreur lors de la création",
-                error : error.message
-            });
-        }
+    }catch(error){
+        res.status(500).json({
+            message: "Erreur lors de la création",
+            error : error.message
+        });
+    }
+};
+exports.getTasks = async (req, res) => {
+    try {
+        const tasks = await Task.find();
+        res.json(tasks);
+    } catch (error) {
+        res.status(500).json({
+            message: "Erreur lors de la récupération",
+            error: error.message
+        });
+    }
 };
