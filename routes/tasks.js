@@ -3,20 +3,20 @@ const router = express.Router();
 const Task = require("../models/Task");
 const auth = require("../middleware/auth");
 
-// 📖 LIRE toutes les tâches AVEC FILTRES ET PAGINATION
+
 router.get("/", auth, async (req, res) => {
   try {
-    // 1. Récupérer les paramètres de la requête
+   
     const {
-      status, // Filtrer par statut
-      priority, // Filtrer par priorité
-      assignedTo, // Filtrer par membre assigné
-      search, // Recherche par mot-clé
-      page = 1, // Page actuelle (défaut: 1)
-      limit = 10, // Nombre d'éléments par page (défaut: 10)
+      status, 
+      priority, 
+      assignedTo, 
+      search,
+      page = 1, 
+      limit = 10, 
     } = req.query;
 
-    // 2. Construire le filtre dynamiquement
+    
     const filter = {};
 
     if (status) {
@@ -35,16 +35,16 @@ router.get("/", auth, async (req, res) => {
       filter.title = { $regex: search, $options: "i" }; // 'i' = insensible à la casse
     }
 
-    // 3. Pagination : calculer le nombre d'éléments à sauter
+   
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // 4. Exécuter la requête avec pagination
+    
     const tasks = await Task.find(filter).skip(skip).limit(parseInt(limit));
 
-    // 5. Compter le nombre total de tâches (pour la pagination)
+    
     const total = await Task.countDocuments(filter);
 
-    // 6. Réponse avec données + métadonnées
+    
     res.json({
       data: tasks,
       total: total,
@@ -57,7 +57,6 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// ➕ CRÉER une tâche
 router.post("/", auth, async (req, res) => {
   try {
     const task = new Task(req.body);
@@ -68,7 +67,7 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-// 🔍 LIRE une tâche spécifique
+
 router.get("/:id", auth, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -81,7 +80,7 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
-// ✏️ MODIFIER une tâche
+
 router.put("/:id", auth, async (req, res) => {
   try {
     const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
@@ -97,7 +96,7 @@ router.put("/:id", auth, async (req, res) => {
   }
 });
 
-// 🗑️ SUPPRIMER une tâche
+
 router.delete("/:id", auth, async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
@@ -110,7 +109,7 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 
-// 🔄 CHANGER le statut
+
 router.patch("/:id/status", auth, async (req, res) => {
   try {
     const { status } = req.body;
@@ -131,7 +130,7 @@ router.patch("/:id/status", auth, async (req, res) => {
   }
 });
 
-// 👥 ASSIGNER une tâche
+
 router.patch("/:id/assign", auth, async (req, res) => {
   try {
     const { userId } = req.body;
