@@ -76,19 +76,31 @@ app.get('/api/dashboard', async (req, res) => {
     const userId = new mongoose.Types.ObjectId("69fa66bdd3708f7e4a44ba89");
     
     const taskAggregation = await Task.aggregate([
-      { $match: { assignedTo: userId } },
-      { $group: {
-          _id: null,
-          totalAssigned: { $sum: 1 },
-          completed: { 
-            $sum: { $cond: [{ $eq: ["$status", "terminé"] }, 1, 0] }
-          },
-          notCompleted: { 
-            $sum: { $cond: [{ $ne: ["$status", "terminé"] }, 1, 0] }
-          }
-        }
+  { $match: { assignedTo: userId } },
+  {
+    $addFields: {
+      isLate: {
+        $and: [
+          { $ne: ["$status", "terminé"] },
+          { $lt: ["$dueDate", new Date()] },
+          { $ne: ["$dueDate", null] }
+        ]
       }
-    ]);
+    }
+  },
+  {
+    $group: {
+      _id: null,
+      totalAssigned: { $sum: 1 },
+      completed: { 
+        $sum: { $cond: [{ $eq: ["$status", "terminé"] }, 1, 0] }
+      },
+      lateTasks: { 
+        $sum: { $cond: ["$isLate", 1, 0] }
+      }
+    }
+  }
+]);
     
     const projectAggregation = await Project.aggregate([
       { $match: { status: "actif" } },
@@ -98,13 +110,37 @@ app.get('/api/dashboard', async (req, res) => {
         }
       }
     ]);
-    
-    res.json({
-      totalActiveProjects: projectAggregation[0]?.total || 0,
-      assignedTasks: taskAggregation[0]?.totalAssigned || 0,
-      completedTasks: taskAggregation[0]?.completed || 0,
-      lateTasks: taskAggregation[0]?.notCompleted || 0
-    });
+  // Tâches en cours triées par priorité (haute → moyenne → basse) puis par dueDate
+const tasksInProgress = await Task.aggregate([
+  { $match: { 
+      assignedTo: userId,
+      status: { $ne: "terminé" }
+    } 
+  },
+  {
+    $addFields: {
+      priorityOrder: {
+        $switch: {
+          branches: [
+            { case: { $eq: ["$priority", "haute"] }, then: 1 },
+            { case: { $eq: ["$priority", "moyenne"] }, then: 2 },
+            { case: { $eq: ["$priority", "basse"] }, then: 3 }
+          ],
+          default: 4
+        }
+      }
+    }
+  },
+  { $sort: { priorityOrder: 1, dueDate: 1 } },
+  { $project: { priorityOrder: 0 } }  // retire le champ temporaire
+]);  
+  res.json({
+    totalActiveProjects: projectAggregation[0]?.total || 0,
+    assignedTasks: taskAggregation[0]?.totalAssigned || 0,
+    completedTasks: taskAggregation[0]?.completed || 0,
+    lateTasks: taskAggregation[0]?.lateTasks || 0,
+    tasksInProgress: tasksInProgress
+});
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
