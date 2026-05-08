@@ -1,100 +1,50 @@
 const STORAGE_KEY = 'taskDraft';
 
-const form = document.getElementById('taskForm');
-const title = document.getElementById('title');
-const description = document.getElementById('description');
-const priority = document.getElementById('priority');
-const status = document.getElementById('status');
-const messageDiv = document.getElementById('message');
+const token = localStorage.getItem('token');
+if (!token) alert('⚠️ Token manquant : rafraîchis avec ?token=... ou stocke-le dans localStorage');
 
-// Récupérer le token depuis l'URL et le stocker
-const urlToken = new URLSearchParams(window.location.search).get('token');
-if (urlToken) {
-  localStorage.setItem('token', urlToken);
-  messageDiv.innerText = '✅ Token stocké depuis l\'URL';
-  setTimeout(() => messageDiv.innerText = '', 2000);
-  // Nettoyer l'URL pour ne plus avoir ?token
-  window.history.replaceState({}, '', '/task-form');
-}
-
-// Sauvegarde auto à chaque modification
-[title, description, priority, status].forEach(field => {
-  field.addEventListener('input', () => {
-    const draft = {
-      title: title.value,
-      description: description.value,
-      priority: priority.value,
-      status: status.value
+document.getElementById('taskForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const task = {
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        priority: document.getElementById('priority').value,
+        status: document.getElementById('status').value
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-    messageDiv.innerText = '✅ Brouillon sauvegardé';
-    setTimeout(() => messageDiv.innerText = '', 1000);
-  });
-});
 
-// Restaurer le brouillon
-document.getElementById('restoreBtn').addEventListener('click', () => {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (raw) {
-    const draft = JSON.parse(raw);
-    title.value = draft.title || '';
-    description.value = draft.description || '';
-    priority.value = draft.priority || 'moyenne';
-    status.value = draft.status || 'à faire';
-    messageDiv.innerText = '📂 Brouillon restauré';
-  } else {
-    messageDiv.innerText = 'Aucun brouillon trouvé';
-  }
-  setTimeout(() => messageDiv.innerText = '', 1500);
-});
-
-// Effacer le brouillon
-document.getElementById('clearBtn').addEventListener('click', () => {
-  localStorage.removeItem(STORAGE_KEY);
-  messageDiv.innerText = '🗑️ Brouillon effacé';
-  setTimeout(() => messageDiv.innerText = '', 1000);
-});
-
-// SOUMISSION VERS L'API (avec token)
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  let token = localStorage.getItem('token');
-
-  if (!token) {
-    messageDiv.innerText = '❌ Vous devez être connecté (token manquant)';
-    setTimeout(() => messageDiv.innerText = '', 3000);
-    return;
-  }
-
-  const task = {
-    title: title.value,
-    description: description.value,
-    priority: priority.value,
-    status: status.value
-  };
-
-  try {
-    const response = await fetch('http://localhost:5000/api/tasks', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(task)
+    const res = await fetch('http://localhost:5000/api/tasks', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+        },
+        body: JSON.stringify(task)
     });
 
-    if (response.ok) {
-      localStorage.removeItem(STORAGE_KEY);
-      messageDiv.innerText = '✅ Tâche créée avec succès !';
-      form.reset();
-    } else {
-      const error = await response.json();
-      messageDiv.innerText = '❌ Erreur : ' + (error.message || 'Erreur inconnue');
-    }
-  } catch (err) {
-    messageDiv.innerText = '❌ Erreur réseau : API indisponible ?';
-  }
+    const data = await res.json();
+    document.getElementById('message').innerText = res.ok ? '✅ Tâche créée' : '❌ Erreur : ' + data.message;
+});
 
-  setTimeout(() => messageDiv.innerText = '', 3000);
+// Restauration / sauvegarde auto (à garder)
+const fields = ['title', 'description', 'priority', 'status'];
+fields.forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => {
+        const draft = {};
+        fields.forEach(f => draft[f] = document.getElementById(f).value);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+    });
+});
+
+document.getElementById('restoreBtn').addEventListener('click', () => {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+        const draft = JSON.parse(raw);
+        fields.forEach(f => document.getElementById(f).value = draft[f] || '');
+    }
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+    localStorage.removeItem(STORAGE_KEY);
+    fields.forEach(f => document.getElementById(f).value = '');
 });
