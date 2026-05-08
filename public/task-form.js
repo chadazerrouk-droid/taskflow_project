@@ -14,7 +14,8 @@ document.getElementById('taskForm').addEventListener('submit', async (e) => {
         title: document.getElementById('title').value,
         description: document.getElementById('description').value,
         priority: document.getElementById('priority').value,
-        status: document.getElementById('status').value
+        status: document.getElementById('status').value,
+        project: document.getElementById('project').value
     };
 
     try {
