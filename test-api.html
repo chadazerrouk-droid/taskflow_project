@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API</title>
+</head>
+<body>
+    <h2>Test Register</h2>
+    <button onclick="testRegister()">Créer un compte</button>
+    <pre id="result">Clique sur le bouton</pre>
+
+    <script>
+        async function testRegister() {
+            const result = document.getElementById('result');
+            result.innerText = "Envoi...";
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fullName: "Test",
+                        email: "test@test.com",
+                        password: "123456"
+                    })
+                });
+                
+                const data = await response.json();
+                result.innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.innerText = "❌ Erreur: " + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
