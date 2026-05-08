@@ -3,7 +3,7 @@ const description = document.getElementById("description");
 const submit = document.getElementById("submit");
 
 let count = 0;
-//brouillon
+let lastCount = 0;
 
 title.addEventListener("input", () => {
   localStorage.setItem("draft_title", title.value);
@@ -13,71 +13,88 @@ description.addEventListener("input", () => {
   localStorage.setItem("draft_description", description.value);
 });
 
-//restauration
+
 window.addEventListener("load", () => {
   const savedTitle = localStorage.getItem("draft_title");
   const savedDesc = localStorage.getItem("draft_description");
 
   if (savedTitle) title.value = savedTitle;
   if (savedDesc) description.value = savedDesc;
-
-  // charger anciennes notifications
   const oldNotifs = JSON.parse(localStorage.getItem("notifications")) || [];
   oldNotifs.forEach(msg => showNotification(msg, false));
 });
 
-//notif
 
 function showNotification(message, save = true) {
   const container = document.getElementById("notifications");
-
+  if (!container) return;
   const notif = document.createElement("div");
   notif.textContent = message;
   notif.style.background = "lightblue";
   notif.style.margin = "5px";
   notif.style.padding = "10px";
+  notif.style.borderRadius = "5px";
 
   container.appendChild(notif);
 
   count++;
-  document.getElementById("badge").textContent = count;
-
-  // sauvegarde localStorage
+  const badge = document.getElementById("badge");
+  if (badge) badge.textContent = count;
   if (save) {
     let stored = JSON.parse(localStorage.getItem("notifications")) || [];
     stored.push(message);
     localStorage.setItem("notifications", JSON.stringify(stored));
   }
-
   setTimeout(() => {
     notif.remove();
-  }, 3000);
+  }, 4000);
 }
-//bouton
 
-submit.addEventListener("click", async() => {
-   submit.addEventListener("click", () => {
-        const data = {
-        title: title.value,
-        description: description.value,
-    };
+submit.addEventListener("click", async () => {
+  const data = {
+    title: title.value,
+    description: description.value,
+  };
 
-  // simulation "succès"
-        let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-        tasks.push(data);
-        localStorage.setItem("tasks", JSON.stringify(tasks));
 
-        showNotification("Tâche créée avec succès !");
+  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  tasks.push(data);
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 
-        title.value = "";
-         description.value = "";
-    });
+  showNotification("Tâche créée avec succès !");
+
+
+  title.value = "";
+  description.value = "";
+  localStorage.removeItem("draft_title");
+  localStorage.removeItem("draft_description");
 });
-function loadTasks() {
-  const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
-  tasks.forEach(task => {
-    console.log(task);
-  });
+async function loadTasks() {
+  try {
+    const res = await fetch("http://localhost:3000/tasks");
+    const tasks = await res.json();
+    console.log("Liste des tâches serveur :", tasks);
+  } catch (error) {
+    console.error("Erreur lors du chargement des tâches :", error);
+  }
 }
-console.log("API TEST:", api);
+window.addEventListener("load", loadTasks);
+
+async function fetchNotifications() {
+  try {
+    const res = await fetch("http://localhost:3000/notifications");
+    const data = await res.json();
+    if (data.length > lastCount) {
+      if (lastCount !== 0) {
+        const latest = data[data.length - 1];
+        showNotification(`Serveur : ${latest.message}`);
+      }
+      lastCount = data.length;
+    }
+  } catch (error) {
+    console.error("Erreur polling :", error);
+  }
+}
+fetchNotifications();
+setInterval(fetchNotifications, 30000);
