@@ -1,155 +1,109 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const Task = require("../models/Task");
-const auth = require("../middleware/auth");
+const Task = require('../models/Task');
+const Project = require('../models/Project');
+const auth = require('../middleware/auth');
+const User = require('../models/User');
 
-// 📖 LIRE toutes les tâches AVEC FILTRES ET PAGINATION
-router.get("/", auth, async (req, res) => {
+// Toutes les routes nécessitent authentification
+//router.use(auth);
+// GET /api/tasks?projectId=...
+router.get('/', async (req, res) => {
   try {
-    // 1. Récupérer les paramètres de la requête
-    const {
-      status, // Filtrer par statut
-      priority, // Filtrer par priorité
-      assignedTo, // Filtrer par membre assigné
-      search, // Recherche par mot-clé
-      page = 1, // Page actuelle (défaut: 1)
-      limit = 10, // Nombre d'éléments par page (défaut: 10)
-    } = req.query;
-
-    // 2. Construire le filtre dynamiquement
-    const filter = {};
-
-    if (status) {
-      filter.status = status;
+    const { projectId } = req.query;
+    if (!projectId) {
+      return res.status(400).json({ message: 'projectId est requis' });
     }
 
-    if (priority) {
-      filter.priority = priority;
-    }
+    const tasks = await Task.find({ project: projectId })
+      .populate('assignedTo', 'name email')
+      .sort({ createdAt: -1 });
 
-    if (assignedTo) {
-      filter.assignedTo = assignedTo;
-    }
-
-    if (search) {
-      filter.title = { $regex: search, $options: "i" }; // 'i' = insensible à la casse
-    }
-
-    // 3. Pagination : calculer le nombre d'éléments à sauter
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    // 4. Exécuter la requête avec pagination
-    const tasks = await Task.find(filter).skip(skip).limit(parseInt(limit));
-
-    // 5. Compter le nombre total de tâches (pour la pagination)
-    const total = await Task.countDocuments(filter);
-
-    // 6. Réponse avec données + métadonnées
-    res.json({
-      data: tasks,
-      total: total,
-      page: parseInt(page),
-      limit: parseInt(limit),
-      totalPages: Math.ceil(total / parseInt(limit)),
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
-
-// ➕ CRÉER une tâche
-router.post("/", auth, async (req, res) => {
+// POST /api/tasks - Créer une tâche
+router.post('/', async (req, res) => {
   try {
-    const task = new Task(req.body);
+    const { title, priority, status, project: projectId, assignedTo } = req.body;
+
+    // Vérifier que le projet existe
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: 'Projet introuvable' });
+    }
+
+    const task = new Task({
+      title,
+      priority: priority || 'basse',
+      status: status || 'à faire',
+      project: projectId,
+      assignedTo
+    });
+
     await task.save();
+    await task.populate('assignedTo', 'name email');
+
     res.status(201).json(task);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
-
-// 🔍 LIRE une tâche spécifique
-router.get("/:id", auth, async (req, res) => {
+// PUT /api/tasks/:id - Modifier une tâche
+router.put('/:id', async (req, res) => {
   try {
+    const { title, priority, status, assignedTo } = req.body;
     const task = await Task.findById(req.params.id);
+
     if (!task) {
-      return res.status(404).json({ message: "Tâche non trouvée" });
+      return res.status(404).json({ message: 'Tâche introuvable' });
     }
+
+    task.title = title ?? task.title;
+    task.priority = priority ?? task.priority;
+    task.status = status ?? task.status;
+    task.assignedTo = assignedTo ?? task.assignedTo;
+
+    await task.save();
+    await task.populate('assignedTo', 'name email');
+
     res.json(task);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
-
-// ✏️ MODIFIER une tâche
-router.put("/:id", auth, async (req, res) => {
-  try {
-    const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!task) {
-      return res.status(404).json({ message: "Tâche non trouvée" });
-    }
-    res.json(task);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// 🗑️ SUPPRIMER une tâche
-router.delete("/:id", auth, async (req, res) => {
+// DELETE /api/tasks/:id - Supprimer une tâche
+router.delete('/:id', async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
     if (!task) {
-      return res.status(404).json({ message: "Tâche non trouvée" });
+      return res.status(404).json({ message: 'Tâche introuvable' });
     }
-    res.json({ message: "Tâche supprimée avec succès" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json({ message: 'Tâche supprimée' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
-
-// 🔄 CHANGER le statut
-router.patch("/:id/status", auth, async (req, res) => {
+// PATCH /api/tasks/:id/assign
+router.patch('/:id/assign', async (req, res) => {
   try {
-    const { status } = req.body;
-    if (!["à faire", "en cours", "terminé"].includes(status)) {
-      return res.status(400).json({ message: "Statut invalide" });
-    }
+    const { assignedTo } = req.body;
+
     const task = await Task.findByIdAndUpdate(
       req.params.id,
-      { status },
-      { new: true },
-    );
+      { assignedTo },
+      { new: true, runValidators: true }
+    ).populate('assignedTo', 'fullName email');
+
     if (!task) {
-      return res.status(404).json({ message: "Tâche non trouvée" });
+      return res.status(404).json({ message: 'Tâche non trouvée' });
     }
+
     res.json(task);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
-
-// 👥 ASSIGNER une tâche
-router.patch("/:id/assign", auth, async (req, res) => {
-  try {
-    const { userId } = req.body;
-    if (!userId) {
-      return res.status(400).json({ message: "userId est requis" });
-    }
-    const task = await Task.findByIdAndUpdate(
-      req.params.id,
-      { assignedTo: userId },
-      { new: true },
-    );
-    if (!task) {
-      return res.status(404).json({ message: "Tâche non trouvée" });
-    }
-    res.json(task);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
 module.exports = router;

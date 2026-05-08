@@ -1,4 +1,6 @@
 {
+<<<<<<< HEAD
+=======
   "name": "taskflow_project",
   "version": "1.0.0",
   "description": "Application web collaborative pour la gestion de tâches - Projet TaskFlow.",
@@ -10,17 +12,27 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/chadazerrouk-droid/taskflow_project.git"
+>>>>>>> origin/develop
   "name": "taskflow",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
+<<<<<<< HEAD
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js"
+=======
     "test": "echo \"Error: no test specified\" && exit 1"
+>>>>>>> origin/develop
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+<<<<<<< HEAD
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+=======
   "bugs": {
     "url": "https://github.com/chadazerrouk-droid/taskflow_project/issues"
   },
@@ -30,6 +42,7 @@
     "bcryptjs": "^3.0.3",
   "dependencies": {
     "bcrypt": "^6.0.0",
+>>>>>>> origin/develop
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
