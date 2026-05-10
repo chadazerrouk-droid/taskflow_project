@@ -6,7 +6,8 @@ const {
   createProject, 
   inviteMember, 
   getProjectActivities,
-  removeMember 
+  removeMember,
+  getUserStats // 1. Ajoute l'import ici
 } = require('../controllers/projectController');
 
 const { protect } = require('../middleware/authMiddleware'); 
@@ -14,6 +15,11 @@ const { isOwner } = require('../middleware/roleMiddleware');
 
 router.get('/', protect, getProjects);
 router.post('/', protect, createProject);
+
+// 2. ROUTE STATS (Agrégation - Jour 13)
+// Très important : Placer cette route AVANT /:projectId
+router.get('/stats/me', protect, getUserStats);
+
 router.get('/:projectId', protect, getProjectById);
 
 // Routes spécifiques E5

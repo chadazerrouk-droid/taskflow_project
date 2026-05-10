@@ -1,6 +1,46 @@
+const mongoose = require('mongoose');
 const Project = require('../models/Project');
 const User = require('../models/User');
 const Activity = require('../models/Activity');
+
+// @desc    Obtenir les statistiques globales de l'utilisateur (Tests d'Agrégation - Jour 13)
+// @route   GET /api/projects/stats/me
+const getUserStats = async (req, res) => {
+  try {
+    // Pipeline d'agrégation pour les projets
+    const stats = await Project.aggregate([
+      { 
+        $match: { 
+          $or: [
+            { owner: new mongoose.Types.ObjectId(req.user.id) },
+            { members: new mongoose.Types.ObjectId(req.user.id) }
+          ] 
+        } 
+      },
+      {
+        $group: {
+          _id: null,
+          totalProjects: { $sum: 1 },
+          avgMembers: { $avg: { $size: "$members" } }
+        }
+      }
+    ]);
+
+    // Pipeline d'agrégation pour les activités
+    const activityStats = await Activity.aggregate([
+      { $match: { user: new mongoose.Types.ObjectId(req.user.id) } },
+      { $group: { _id: "$actionType", count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+
+    res.json({
+      summary: stats[0] || { totalProjects: 0, avgMembers: 0 },
+      activityBreakdown: activityStats
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur lors du calcul des statistiques' });
+  }
+};
 
 // @desc    Récupérer tous les projets auxquels l'utilisateur participe
 // @route   GET /api/projects
@@ -127,7 +167,6 @@ const getProjectActivities = async (req, res) => {
     const project = await Project.findById(req.params.projectId);
     if (!project) return res.status(404).json({ message: 'Projet non trouvé' });
 
-    // VÉRIFICATION DE SÉCURITÉ : L'utilisateur doit être lié au projet pour voir l'historique
     const isOwner = project.owner.toString() === req.user.id;
     const isMember = project.members.some(id => id.toString() === req.user.id);
 
@@ -154,7 +193,6 @@ const removeMember = async (req, res) => {
 
     if (!project) return res.status(404).json({ message: "Projet non trouvé" });
 
-    // Seul le propriétaire peut supprimer quelqu'un
     if (project.owner.toString() !== req.user.id) {
         return res.status(403).json({ message: "Seul le propriétaire peut retirer des membres" });
     }
@@ -178,5 +216,6 @@ module.exports = {
   createProject,
   inviteMember,
   getProjectActivities,
-  removeMember
+  removeMember,
+  getUserStats // N'oublie pas de l'exporter !
 };
