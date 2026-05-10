@@ -1,5 +1,5 @@
 const api = axios.create({
-    baseURL: "http://localhost:3000/api",
+    baseURL: "http://localhost:3000",
 });
 api.interceptors.request.use(
     (config)=>{
@@ -14,18 +14,16 @@ api.interceptors.request.use(
         return Promise.reject(error);
     }
 );
-function createTask() {
-  fetch("http://localhost:5000/tasks", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      title: "Test",
-      description: "Test task",
-      assignedTo: "Zainab El kharraz"
-    })
-  })
-  .then(res => res.json())
-  .then(data => console.log(data));
+async function createTask(taskData) {
+  try{
+    const response = await api.post("/tasks", {
+      title: taskData.title,
+      description: taskData.description,
+      assignedTo: "Zainab Elkharraz" 
+    });
+    console.log("reponse du serveur : ", response.data);
+    return response.data;
+  }catch(error){
+    console.error("Erreur lors de la création :", error);
+  }
 }
