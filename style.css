@@ -1,4 +1,4 @@
-body{
+/*body{
     font-family: Arial;
     padding:20px;
     background: #f5f5f5;
@@ -61,4 +61,157 @@ button:hover{
 .notif-item:hover{
     transform: scale(1.02);
     background: #f9f9f9;
+}*/
+:root {
+    --bg-dark: #0f172a;
+    --accent: #8b5cf6;
+    --accent-glow: rgba(139, 92, 246, 0.5);
+    --glass: rgba(30, 41, 59, 0.7);
+    --border: rgba(255, 255, 255, 0.1);
+    --text: #f1f5f9;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--bg-dark);
+  
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(30, 210, 244, 0.1) 0px, transparent 50%);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+
+#notifications {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+}
+
+.notif-item {
+    background: var(--glass);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 24px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transform-origin: right;
+    animation: slideInComplex 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s ease;
+}
+
+.notif-item:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+    transform: scale(1.03) translateX(-10px);
+}
+
+
+#badge, .badge {
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-size: 10px;
+    font-weight: 800;
+    box-shadow: 0 0 10px rgba(255, 75, 43, 0.5);
+    animation: pulse 2s infinite;
+}
+
+
+input, textarea {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    color: white;
+    width: 340px;
+    margin-bottom: 15px;
+    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.07);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15), inset 0 0 8px rgba(139, 92, 246, 0.1);
+}
+
+
+button {
+    background: linear-gradient(90deg, #8b5cf6, #d946ef);
+    background-size: 200% auto;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 378px;
+    transition: 0.5s ease;
+    box-shadow: 0 10px 20px -10px rgba(139, 92, 246, 0.5);
+}
+
+button:hover {
+    background-position: right center;
+    transform: translateY(-2px);
+    box-shadow: 0 15px 25px -10px rgba(139, 92, 246, 0.6);
+}
+
+
+@keyframes slideInComplex {
+    0% { opacity: 0; transform: translateX(100px) scale(0.8); filter: blur(10px); }
+    100% { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 75, 43, 0.7); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 75, 43, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 75, 43, 0); }
+}
+
+header { 
+    margin-bottom: 50px; 
+    text-align: center;
+}
+
+#TaskFlow {
+    font-size: 2.5rem;
+    letter-spacing: -1px;
+    margin-bottom: 10px;
+    display: inline-block;
+    position: relative;
+}
+
+
+#notif-badge {
+    background: linear-gradient(135deg, #ff4b2b, #ff416c);
+    color: white;
+    font-size: 14px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 12px; /* Forme pilule */
+    margin-left: 15px;
+    box-shadow: 0 4px 10px rgba(255, 65, 108, 0.4);
+    transition: all 0.3s ease;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+
+.bump {
+    transform: scale(1.4);
 }
