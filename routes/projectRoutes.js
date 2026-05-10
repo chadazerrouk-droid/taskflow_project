@@ -1,23 +1,24 @@
 const express = require('express');
-const {
-  getProjects,
-  getProjectById,
-  createProject,
-  updateProject,
-  deleteProject
-} = require('../controllers/projectController');
-const { protect } = require('../middleware/authMiddleware');
-
 const router = express.Router();
+const { 
+  getProjects, 
+  getProjectById, 
+  createProject, 
+  inviteMember, 
+  getProjectActivities,
+  removeMember 
+} = require('../controllers/projectController');
 
-// Toutes les routes des projets sont protégées
-router.route('/')
-  .get(protect, getProjects)
-  .post(protect, createProject);
+const { protect } = require('../middleware/authMiddleware'); 
+const { isOwner } = require('../middleware/roleMiddleware'); 
 
-router.route('/:id')
-  .get(protect, getProjectById)
-  .put(protect, updateProject)
-  .delete(protect, deleteProject);
+router.get('/', protect, getProjects);
+router.post('/', protect, createProject);
+router.get('/:projectId', protect, getProjectById);
+
+// Routes spécifiques E5
+router.post('/:projectId/invite', protect, isOwner, inviteMember);
+router.get('/:projectId/activities', protect, getProjectActivities);
+router.delete('/:projectId/members/:memberId', protect, isOwner, removeMember);
 
 module.exports = router;

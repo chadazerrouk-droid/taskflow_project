@@ -1,24 +1,28 @@
 const express = require('express');
-const {
-  getTasks,
-  createTask,
-  updateTask,
-  deleteTask,
-  updateTaskStatus
+const router = express.Router();
+const { 
+    getTasks, 
+    createTask, 
+    updateTask, 
+    deleteTask, 
+    updateTaskStatus 
 } = require('../controllers/taskController');
 const { protect } = require('../middleware/authMiddleware');
 
-const router = express.Router();
-
 // Toutes les routes sont protégées
+router.use(protect);
+
+// Routes de base : /api/tasks
 router.route('/')
-  .get(protect, getTasks)
-  .post(protect, createTask);
+    .get(getTasks)
+    .post(createTask);
 
+// Routes par ID : /api/tasks/:id
 router.route('/:id')
-  .put(protect, updateTask)
-  .delete(protect, deleteTask);
+    .put(updateTask)
+    .delete(deleteTask);
 
-router.patch('/:id/status', protect, updateTaskStatus);
+// Route spécifique pour le statut : /api/tasks/:id/status
+router.patch('/:id/status', updateTaskStatus);
 
 module.exports = router;

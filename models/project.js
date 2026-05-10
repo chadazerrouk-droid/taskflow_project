@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const projectSchema = new mongoose.Schema(
@@ -14,6 +15,8 @@ const projectSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    // ✅ AJOUTE CETTE LIGNE (CRUCIAL POUR LA MISSION F8)
+    members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true },
 );

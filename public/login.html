@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion TaskFlow</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-5">
+    <div class="card shadow p-4 mx-auto" style="max-width: 400px;">
+        <h3>Connexion</h3>
+        <input type="email" id="email" class="form-control mb-2" placeholder="Email">
+        <input type="password" id="pass" class="form-control mb-3" placeholder="Mot de passe">
+        <button onclick="login()" class="btn btn-primary w-100">Se connecter</button>
+    </div>
+
+    <script>
+        async function login() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('pass').value;
+
+    // ÉTAPE A : On essaie d'abord de créer le compte au cas où
+    await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: "Basma", email: email, password: password })
+    });
+
+    // ÉTAPE B : On se connecte juste après
+    const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+        localStorage.setItem('token', data.token);
+        alert("Succès ! Vous êtes connectée.");
+        // Remplace par un ID de PROJET que tu as vu dans ta collection "projects"
+        window.location.href = "/project-details.html?id=69f88efb92178d2d46906d47";
+    } else {
+        alert("Erreur de connexion : " + data.message);
+    }
+}
+    
+        
+    </script>
+</body>
+</html>
