@@ -2,6 +2,11 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const protect = async (req, res, next) => {
+  // Permet de passer le token dans l'URL (pour test)
+  if (req.query.token) {
+    req.headers.authorization = `Bearer ${req.query.token}`;
+  }
+
   let token;
 
   // Vérifier si le token existe dans le header Authorization
