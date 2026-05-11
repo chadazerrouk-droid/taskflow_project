@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskFlow - Inscription</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { width: 300px; padding: 20px; border: 1px solid #ccc; border-radius: 10px; }
+        input { width: 100%; padding: 8px; margin: 10px 0; }
+        button { width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Inscription</h2>
+        <input type="text" id="fullName" placeholder="Nom complet" />
+        <input type="email" id="email" placeholder="Email" />
+        <input type="password" id="password" placeholder="Mot de passe" />
+        <button onclick="register()">S'inscrire</button>
+        <p id="error" class="error"></p>
+        <p>Déjà un compte ? <a href="login.html">Se connecter</a></p>
+    </div>
+
+    <script>
+        async function register() {
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error');
+
+            if (!fullName || !email || !password) {
+                errorDiv.innerText = 'Tous les champs sont obligatoires';
+                return;
+            }
+
+            try {
+                const response = await axios.post('/api/register', { fullName, email, password });
+                if (response.status === 201) {
+                    window.location.href = '/login.html';
+                }
+            } catch (err) {
+                errorDiv.innerText = err.response?.data?.message || 'Erreur d\'inscription';
+            }
+        }
+    </script>
+</body>
+</html>
