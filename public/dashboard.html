@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskFlow - Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .metric { margin: 20px 0; font-size: 18px; }
+        .value { font-weight: bold; color: #4CAF50; }
+    </style>
+</head>
+<body>
+    <h1>📊 Tableau de bord</h1>
+    <div class="metric">📁 Projets actifs : <span id="activeProjects" class="value">-</span></div>
+    <div class="metric">✅ Tâches assignées : <span id="assignedTasks" class="value">-</span></div>
+    <div class="metric">✔️ Tâches terminées : <span id="completedTasks" class="value">-</span></div>
+    <div class="metric">⏰ Tâches en retard : <span id="overdueTasks" class="value">-</span></div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            document.body.innerHTML = '<h2>❌ Vous devez être connecté</h2><a href="login.html">Se connecter</a>';
+        } else {
+            axios.get('http://localhost:3000/api/dashboard', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(response => {
+                const data = response.data;
+                document.getElementById('activeProjects').innerText = data.activeProjects || 0;
+                document.getElementById('assignedTasks').innerText = data.assignedTasks || 0;
+                document.getElementById('completedTasks').innerText = data.completedTasks || 0;
+                document.getElementById('overdueTasks').innerText = data.overdueTasks || 0;
+            })
+            .catch(error => {
+                console.error('Erreur dashboard:', error);
+                document.body.innerHTML += '<p style="color:red">❌ Erreur chargement des données</p>';
+            });
+        }
+    </script>
+</body>
+</html>
