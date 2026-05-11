@@ -18,25 +18,48 @@
     <div class="metric">⏰ Tâches en retard : <span id="overdueTasks" class="value">-</span></div>
 
     <script>
-        const token = localStorage.getItem('token');
-        if (!token) {
-            document.body.innerHTML = '<h2>❌ Vous devez être connecté</h2><a href="login.html">Se connecter</a>';
-        } else {
-            axios.get('http://localhost:3000/api/dashboard', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
-            .then(response => {
-                const data = response.data;
-                document.getElementById('activeProjects').innerText = data.activeProjects || 0;
-                document.getElementById('assignedTasks').innerText = data.assignedTasks || 0;
-                document.getElementById('completedTasks').innerText = data.completedTasks || 0;
-                document.getElementById('overdueTasks').innerText = data.overdueTasks || 0;
-            })
-            .catch(error => {
-                console.error('Erreur dashboard:', error);
-                document.body.innerHTML += '<p style="color:red">❌ Erreur chargement des données</p>';
-            });
-        }
-    </script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+        document.body.innerHTML = '<h2>❌ Vous devez être connecté</h2><a href="login.html">Se connecter</a>';
+    } else {
+        axios.get('http://localhost:3000/api/dashboard', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(response => {
+            const data = response.data;
+            
+            // Métriques
+            document.getElementById('activeProjects').innerText = data.activeProjects || 0;
+            document.getElementById('assignedTasks').innerText = data.assignedTasks || 0;
+            document.getElementById('completedTasks').innerText = data.completedTasks || 0;
+            document.getElementById('overdueTasks').innerText = data.overdueTasks || 0;
+            
+            // ⭐ Afficher les tâches en cours triées
+            const pendingTasks = data.pendingTasks || [];
+            const container = document.getElementById('pendingTasksList');
+            
+            if (container) {
+                if (pendingTasks.length === 0) {
+                    container.innerHTML = '<p>Aucune tâche en cours.</p>';
+                } else {
+                    container.innerHTML = pendingTasks.map(task => `
+                        <div style="border:1px solid #ddd; margin:10px 0; padding:10px; border-radius:5px;">
+                            <strong>${task.title}</strong><br>
+                            Priorité : <span style="color:${task.priority === 'haute' ? 'red' : (task.priority === 'moyenne' ? 'orange' : 'green')}">${task.priority}</span><br>
+                            Date limite : ${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Non définie'}<br>
+                            Statut : ${task.status}
+                        </div>
+                    `).join('');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Erreur dashboard:', error);
+            document.body.innerHTML += '<p style="color:red">❌ Erreur chargement des données</p>';
+        });
+    }
+</script>
+<h2>📋 Tâches en cours (triées par priorité + date)</h2>
+<div id="pendingTasksList"></div>
 </body>
 </html>
