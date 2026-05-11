@@ -167,11 +167,50 @@ const removeMember = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
+// Fonction temporaire pour updateProject
+const updateProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: 'Projet non trouvé' });
+    }
+    if (project.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Non autorisé' });
+    }
+    const updatedProject = await Project.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    res.json(updatedProject);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Fonction temporaire pour deleteProject
+const deleteProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: 'Projet non trouvé' });
+    }
+    if (project.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Non autorisé' });
+    }
+    await project.deleteOne();
+    res.json({ message: 'Projet supprimé' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 module.exports = {
   getProjects,
   getProjectById,
   createProject,
+  updateProject,   
+  deleteProject,
   inviteMember,
   getProjectActivities,
   removeMember

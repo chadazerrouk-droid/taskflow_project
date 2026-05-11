@@ -1,3 +1,5 @@
+global.crypto = require('crypto');
+global.crypto = crypto;
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
