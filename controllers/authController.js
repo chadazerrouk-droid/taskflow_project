@@ -20,17 +20,17 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'Cet email est déjà utilisé' });
     }
 
-    // Créer l'utilisateur
+    // Créer l'utilisateur avec fullName (car le modèle utilise fullName)
     const user = await User.create({
-      name,
+      fullName: name,
       email,
       password
     });
 
-    // Retourner la réponse (sans le mot de passe)
+    // Retourner la réponse
     res.status(201).json({
       _id: user._id,
-      name: user.name,
+      name: user.fullName,
       email: user.email,
       token: generateToken(user._id)
     });
@@ -51,7 +51,7 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
     }
 
-    // Vérifier le mot de passe
+    // Vérifier le mot de passe (méthode comparePassword)
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
@@ -60,7 +60,7 @@ const login = async (req, res) => {
     // Retourner la réponse
     res.json({
       _id: user._id,
-      name: user.name,
+      name: user.fullName,
       email: user.email,
       token: generateToken(user._id)
     });
