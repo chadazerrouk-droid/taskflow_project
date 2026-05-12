@@ -26,67 +26,66 @@ app.get('/api/health', (req, res) => {
 });
 
 // Route register
-app.post('/api/register', async (req, res) => {
-  try {
-    const { fullName, email, password } = req.body;
-    const User = require('./models/User');
-    const bcrypt = require('bcryptjs');
+// app.post('/api/register', async (req, res) => {
+//   try {
+//     const { fullName, email, password } = req.body;
+//     const User = require('./models/User');
+//     const bcrypt = require('bcryptjs');
     
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Email déjà utilisé' });
-    }
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ message: 'Email déjà utilisé' });
+//     }
     
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ fullName, email, password: hashedPassword });
-    await user.save();
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     const user = new User({ fullName, email, password: hashedPassword });
+//     await user.save();
     
-    res.status(201).json({ message: 'Utilisateur créé avec succès' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+//     res.status(201).json({ message: 'Utilisateur créé avec succès' });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
 
 // Route login
-app.post('/api/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const User = require('./models/User');
-    const bcrypt = require('bcryptjs');
-    const jwt = require('jsonwebtoken');
+// app.post('/api/login', async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const User = require('./models/User');
+//     const bcrypt = require('bcryptjs');
+//     const jwt = require('jsonwebtoken');
     
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
-    }
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
+//     }
     
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
-    }
+//     const isValid = await bcrypt.compare(password, user.password);
+//     if (!isValid) {
+//       return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
+//     }
     
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: user._id, name: user.fullName, email: user.email } });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+//     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+//     res.json({ token, user: { id: user._id, name: user.fullName, email: user.email } });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
  // Dashboard route
-// Dashboard route (version sans MongoDB)
-app.get('/api/dashboard', async (req, res) => {
-  console.log('Route dashboard appelée');
-  try {
-    res.json({
-      totalActiveProjects: 0,
-      assignedTasks: 0,
-      completedTasks: 0,
-      lateTasks: 0,
-      tasksInProgress: []
-    });
-  } catch (err) {
-    console.error('Dashboard error:', err);
-    res.status(500).json({ message: err.message });
-  }
+// Dashboard route (version debug)
+// Dashboard route (version mockée pour démo)
+app.get('/api/dashboard', (req, res) => {
+  res.json({
+    totalActiveProjects: 1,
+    assignedTasks: 4,
+    completedTasks: 1,
+    lateTasks: 1,
+    tasksInProgress: [
+      { title: "Tâche en retard", priority: "haute", dueDate: "2026-05-01", status: "en cours" },
+      { title: "Tâche haute priorité", priority: "haute", dueDate: "2026-05-15", status: "en cours" },
+      { title: "Tâche moyenne priorité", priority: "moyenne", dueDate: "2026-05-20", status: "en cours" }
+    ]
+  });
 });
 
 // Connexion MongoDB

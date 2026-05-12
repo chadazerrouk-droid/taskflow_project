@@ -28,14 +28,14 @@
         .then(response => {
             const data = response.data;
             
-            // Métriques
-            document.getElementById('activeProjects').innerText = data.activeProjects || 0;
+            // ⚠️ Utilise les BONS noms de champs
+            document.getElementById('activeProjects').innerText = data.totalActiveProjects || 0;
             document.getElementById('assignedTasks').innerText = data.assignedTasks || 0;
             document.getElementById('completedTasks').innerText = data.completedTasks || 0;
-            document.getElementById('overdueTasks').innerText = data.overdueTasks || 0;
+            document.getElementById('overdueTasks').innerText = data.lateTasks || 0;
             
-            // ⭐ Afficher les tâches en cours triées
-            const pendingTasks = data.pendingTasks || [];
+            // Afficher les tâches en cours
+            const pendingTasks = data.tasksInProgress || [];
             const container = document.getElementById('pendingTasksList');
             
             if (container) {
@@ -58,7 +58,7 @@
             document.body.innerHTML += '<p style="color:red">❌ Erreur chargement des données</p>';
         });
     }
-</script>
+    </script>
 <h2>📋 Tâches en cours (triées par priorité + date)</h2>
 <div id="pendingTasksList"></div>
 </body>
