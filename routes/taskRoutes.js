@@ -12,7 +12,7 @@ const router = express.Router();
 
 // Toutes les routes sont protégées
 router.route('/')
-  .get(protect, getTasks)
+  .get(getTasks)  // ← protect enlevé temporairement
   .post(protect, createTask);
 
 router.route('/:id')
