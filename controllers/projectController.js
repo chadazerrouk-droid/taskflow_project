@@ -49,7 +49,6 @@ const getProjectById = async (req, res) => {
 
     if (!project) return res.status(404).json({ message: 'Projet non trouvé' });
 
-    // Vérification d'accès
     const isOwner = project.owner._id.toString() === req.user.id;
     const isMember = project.members.some(m => m._id.toString() === req.user.id);
 
@@ -74,10 +73,9 @@ const createProject = async (req, res) => {
       deadline,
       status,
       owner: req.user.id,
-      members: [req.user.id] 
+      members: [req.user.id]
     });
 
-    // Optionnel : Enregistrer l'activité de création
     await Activity.create({
       actionType: 'PROJECT_CREATED',
       project: project._id,
@@ -91,11 +89,50 @@ const createProject = async (req, res) => {
   }
 };
 
+// @desc    Mettre à jour un projet
+const updateProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) return res.status(404).json({ message: 'Projet non trouvé' });
+
+    if (project.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Seul le propriétaire peut modifier' });
+    }
+
+    const { title, description, deadline, status } = req.body;
+    project.title = title || project.title;
+    project.description = description || project.description;
+    project.deadline = deadline || project.deadline;
+    project.status = status || project.status;
+
+    await project.save();
+    res.json(project);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Supprimer un projet
+const deleteProject = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) return res.status(404).json({ message: 'Projet non trouvé' });
+
+    if (project.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Seul le propriétaire peut supprimer' });
+    }
+
+    await project.deleteOne();
+    res.json({ message: 'Projet supprimé' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ==========================================
-// 2. GESTION DES MEMBRES (Mission E5 - F8)
+// 2. GESTION DES MEMBRES (E5)
 // ==========================================
 
-// @desc    Inviter un membre par email
 const inviteMember = async (req, res) => {
   try {
     const { email } = req.body;
@@ -103,22 +140,18 @@ const inviteMember = async (req, res) => {
 
     if (!project) return res.status(404).json({ message: "Projet non trouvé" });
 
-    // 1. Trouver l'utilisateur par email
     const userToInvite = await User.findOne({ email });
     if (!userToInvite) {
       return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
 
-    // 2. Vérifier si déjà membre
     if (project.members.includes(userToInvite._id)) {
       return res.status(400).json({ message: "Cet utilisateur est déjà membre" });
     }
 
-    // 3. Ajouter le membre
     project.members.push(userToInvite._id);
     await project.save();
 
-    // 4. LOG D'ACTIVITÉ (Mission E5 - F9)
     await Activity.create({
       actionType: "MEMBER_ADDED",
       project: project._id,
@@ -132,28 +165,12 @@ const inviteMember = async (req, res) => {
   }
 };
 
-// ==========================================
-// 3. HISTORIQUE DES ACTIVITÉS (Mission E5 - F9)
-// ==========================================
-
-// @desc    Récupérer l'historique des actions d'un projet
-const getProjectActivities = async (req, res) => {
-  try {
-    const activities = await Activity.find({ project: req.params.projectId })
-      .populate('user', 'name')
-      .sort({ timestamp: -1 }); // Du plus récent au plus ancien
-
-    res.json(activities);
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la récupération des activités' });
-  }
-};
-
-// @desc    Supprimer un membre (Optionnel E5)
 const removeMember = async (req, res) => {
   try {
     const project = await Project.findById(req.params.projectId);
     const { memberId } = req.params;
+
+    if (!project) return res.status(404).json({ message: "Projet non trouvé" });
 
     if (memberId === project.owner.toString()) {
       return res.status(400).json({ message: "Impossible de supprimer le propriétaire" });
@@ -168,11 +185,33 @@ const removeMember = async (req, res) => {
   }
 };
 
+// ==========================================
+// 3. HISTORIQUE DES ACTIVITÉS (E5)
+// ==========================================
+
+const getProjectActivities = async (req, res) => {
+  try {
+    const activities = await Activity.find({ project: req.params.projectId })
+      .populate('user', 'name')
+      .sort({ timestamp: -1 });
+
+    res.json(activities);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur lors de la récupération des activités' });
+  }
+};
+
+// ==========================================
+// 4. EXPORT
+// ==========================================
+
 module.exports = {
   getProjects,
   getProjectById,
   createProject,
+  updateProject,
+  deleteProject,
   inviteMember,
-  getProjectActivities,
-  removeMember
+  removeMember,
+  getProjectActivities
 };
