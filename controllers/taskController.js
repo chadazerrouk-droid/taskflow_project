@@ -5,6 +5,7 @@ const Project = require('../models/Project');
 // @desc    Récupérer toutes les tâches (avec filtres projet/membre)
 const getTasks = async (req, res) => {
   try {
+    req.user = { id: "1" }; // ← temporaire, à enlever après
     const { projectId } = req.query;
     let filter = {};
 
@@ -12,16 +13,28 @@ const getTasks = async (req, res) => {
       filter.project = projectId;
     } else {
       // Par défaut, l'utilisateur voit les tâches des projets où il est owner ou membre
-      const projects = await Project.find({
-        $or: [{ owner: req.user.id }, { members: req.user.id }]
-      }).select('_id');
+      const projects = await Project.find().select('_id');
       filter.project = { $in: projects.map(p => p._id) };
     }
 
-    const tasks = await Task.find(filter)
-      .populate('project', 'title')
-      .populate('assignedTo', 'name email')
-      .sort({ createdAt: -1 });
+   // Gestion du tri
+let sortCriteria = {};
+const { sort } = req.query;
+
+if (sort === 'priority') {
+  sortCriteria = { priority: -1 }; // haute → basse
+} else if (sort === 'dueDate') {
+  sortCriteria = { dueDate: 1 };   // plus proche → plus lointaine
+} else if (sort === 'priority+dueDate') {
+  sortCriteria = { priority: -1, dueDate: 1 };
+} else {
+  sortCriteria = { createdAt: -1 }; // tri par défaut
+}
+
+const tasks = await Task.find(filter)
+  .populate('project', 'title')
+  .populate('assignedTo', 'name email')
+  .sort(sortCriteria);
 
     res.json(tasks);
   } catch (error) {

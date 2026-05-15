@@ -1,10 +1,11 @@
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // Générer un token JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '7d'
+    expiresIn: '30d'
   });
 };
 
@@ -12,30 +13,35 @@ const generateToken = (id) => {
 // @desc    Inscription d'un nouvel utilisateur
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { fullName, email, password } = req.body;
 
-    // Vérifier si l'utilisateur existe déjà
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ message: 'Tous les champs sont requis' });
+    }
+
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'Cet email est déjà utilisé' });
     }
 
-    // Créer l'utilisateur avec fullName (car le modèle utilise fullName)
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
-      fullName: name,
+      fullName,
       email,
-      password
+      password: hashedPassword
     });
 
-    // Retourner la réponse
+    const token = generateToken(user._id);
+
     res.status(201).json({
       _id: user._id,
-      name: user.fullName,
+      fullName: user.fullName,
       email: user.email,
-      token: generateToken(user._id)
+      token
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    console.error('Erreur register:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
   }
 };
 
@@ -45,27 +51,31 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Vérifier si l'utilisateur existe
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email et mot de passe requis' });
+    }
+
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
+      return res.status(401).json({ message: 'Identifiants invalides' });
     }
 
-    // Vérifier le mot de passe (méthode comparePassword)
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Identifiants invalides' });
     }
 
-    // Retourner la réponse
+    const token = generateToken(user._id);
+
     res.json({
       _id: user._id,
-      name: user.fullName,
+      fullName: user.fullName,
       email: user.email,
-      token: generateToken(user._id)
+      token
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    console.error('Erreur login:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
   }
 };
 

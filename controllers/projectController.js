@@ -49,7 +49,6 @@ const getProjectById = async (req, res) => {
 
     if (!project) return res.status(404).json({ message: 'Projet non trouvé' });
 
-    // Vérification d'accès
     const isOwner = project.owner._id.toString() === req.user.id;
     const isMember = project.members.some(m => m._id.toString() === req.user.id);
 
@@ -131,10 +130,9 @@ const deleteProject = async (req, res) => {
 };
 
 // ==========================================
-// 2. GESTION DES MEMBRES (Mission E5 - F8)
+// 2. GESTION DES MEMBRES (E5)
 // ==========================================
 
-// @desc    Inviter un membre par email
 const inviteMember = async (req, res) => {
   try {
     const { email } = req.body;
@@ -167,7 +165,6 @@ const inviteMember = async (req, res) => {
   }
 };
 
-// @desc    Supprimer un membre
 const removeMember = async (req, res) => {
   try {
     const project = await Project.findById(req.params.projectId);
@@ -189,10 +186,9 @@ const removeMember = async (req, res) => {
 };
 
 // ==========================================
-// 3. HISTORIQUE DES ACTIVITÉS (Mission E5 - F9)
+// 3. HISTORIQUE DES ACTIVITÉS (E5)
 // ==========================================
 
-// @desc    Récupérer l'historique des actions d'un projet
 const getProjectActivities = async (req, res) => {
   try {
     const activities = await Activity.find({ project: req.params.projectId })
