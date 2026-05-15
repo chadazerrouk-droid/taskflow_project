@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>TaskFlow - Nouvelle tâche</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f4;
+      }
+      .container {
+        max-width: 500px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 15px;
+        margin-top: 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      .message {
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 4px;
+      }
+      .success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c6e;
+        border: 1px solid #f5c6cb;
+      }
+      .restore-box {
+        background-color: #fff3cd;
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        display: none;
+      }
+      .restore-box button {
+        width: auto;
+        margin-right: 10px;
+        background-color: #ffc107;
+        color: #333;
+      }
+      hr {
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Créer une tâche</h1>
+
+      <div id="restoreBox" class="restore-box">
+        <p>💾 Un brouillon sauvegardé a été trouvé.</p>
+        <button id="restoreBtn">Restaurer</button>
+        <button id="discardBtn">Ignorer</button>
+      </div>
+
+      <form id="taskForm">
+        <label>Titre *</label>
+        <input
+          type="text"
+          id="title"
+          placeholder="Ex: Faire le rapport"
+          required
+        />
+
+        <label>Description</label>
+        <textarea
+          id="description"
+          rows="3"
+          placeholder="Détails de la tâche..."
+        ></textarea>
+
+        <label>Priorité</label>
+        <select id="priority">
+          <option value="basse">Basse</option>
+          <option value="moyenne" selected>Moyenne</option>
+          <option value="haute">Haute</option>
+        </select>
+
+        <label>Statut</label>
+        <select id="status">
+          <option value="à faire">À faire</option>
+          <option value="en cours">En cours</option>
+          <option value="terminé">Terminé</option>
+        </select>
+
+        <label>ID du projet *</label>
+        <input
+          type="text"
+          id="projectId"
+          placeholder="69f88efb92178d2d46906e4a"
+          required
+        />
+
+        <button type="submit">Créer la tâche</button>
+      </form>
+
+      <hr />
+      <div id="message"></div>
+      <p style="font-size: 12px; color: #666; text-align: center">
+        💾 Sauvegarde automatique du brouillon dans votre navigateur
+      </p>
+    </div>
+
+    <script>
+      const API_URL = "http://localhost:5000/api/tasks";
+
+      function getDraftKey(projectId) {
+        return "task_draft_" + projectId;
+      }
+
+      function autoSave() {
+        let projectId = document.getElementById("projectId").value.trim();
+        if (!projectId) return;
+
+        let draft = {
+          title: document.getElementById("title").value,
+          description: document.getElementById("description").value,
+          priority: document.getElementById("priority").value,
+          status: document.getElementById("status").value,
+          projectId: projectId,
+          date: new Date().toISOString(),
+        };
+
+        let key = getDraftKey(projectId);
+        localStorage.setItem(key, JSON.stringify(draft));
+        console.log("Brouillon sauvegardé");
+      }
+
+      function checkDraft() {
+        let projectId = document.getElementById("projectId").value.trim();
+        if (!projectId) return;
+
+        let key = getDraftKey(projectId);
+        let saved = localStorage.getItem(key);
+
+        if (saved) {
+          document.getElementById("restoreBox").style.display = "block";
+        } else {
+          document.getElementById("restoreBox").style.display = "none";
+        }
+      }
+
+      function restoreDraft() {
+        let projectId = document.getElementById("projectId").value.trim();
+        let key = getDraftKey(projectId);
+        let saved = localStorage.getItem(key);
+
+        if (saved) {
+          let draft = JSON.parse(saved);
+          document.getElementById("title").value = draft.title || "";
+          document.getElementById("description").value =
+            draft.description || "";
+          document.getElementById("priority").value =
+            draft.priority || "moyenne";
+          document.getElementById("status").value = draft.status || "à faire";
+          document.getElementById("projectId").value =
+            draft.projectId || projectId;
+
+          document.getElementById("restoreBox").style.display = "none";
+          showMessage("success", "Brouillon restauré");
+        }
+      }
+
+      function discardDraft() {
+        let projectId = document.getElementById("projectId").value.trim();
+        let key = getDraftKey(projectId);
+        localStorage.removeItem(key);
+        document.getElementById("restoreBox").style.display = "none";
+        showMessage("success", "Brouillon ignoré");
+      }
+
+      function showMessage(type, text) {
+        let msgDiv = document.getElementById("message");
+        msgDiv.innerHTML =
+          '<div class="message ' + type + '">' + text + "</div>";
+        setTimeout(() => {
+          msgDiv.innerHTML = "";
+        }, 3000);
+      }
+
+      async function submitTask(e) {
+        e.preventDefault();
+
+        let taskData = {
+          title: document.getElementById("title").value,
+          description: document.getElementById("description").value,
+          priority: document.getElementById("priority").value,
+          status: document.getElementById("status").value,
+          project: document.getElementById("projectId").value,
+        };
+
+        if (!taskData.title || !taskData.project) {
+          showMessage("error", "Le titre et l'ID projet sont obligatoires");
+          return;
+        }
+
+        try {
+          let response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(taskData),
+          });
+
+          if (response.ok) {
+            let result = await response.json();
+            showMessage("success", "Tâche créée ! ID: " + result._id);
+
+            let projectId = document.getElementById("projectId").value.trim();
+            localStorage.removeItem(getDraftKey(projectId));
+
+            document.getElementById("title").value = "";
+            document.getElementById("description").value = "";
+            document.getElementById("priority").value = "moyenne";
+            document.getElementById("status").value = "à faire";
+            document.getElementById("projectId").value = "";
+          } else {
+            let error = await response.json();
+            showMessage("error", "Erreur: " + error.message);
+          }
+        } catch (error) {
+          showMessage("error", "Erreur: " + error.message);
+        }
+      }
+
+      // Écouter les événements
+      document
+        .getElementById("taskForm")
+        .addEventListener("submit", submitTask);
+      document
+        .getElementById("restoreBtn")
+        .addEventListener("click", restoreDraft);
+      document
+        .getElementById("discardBtn")
+        .addEventListener("click", discardDraft);
+
+      document.getElementById("title").addEventListener("input", autoSave);
+      document
+        .getElementById("description")
+        .addEventListener("input", autoSave);
+      document.getElementById("priority").addEventListener("change", autoSave);
+      document.getElementById("status").addEventListener("change", autoSave);
+      document
+        .getElementById("projectId")
+        .addEventListener("input", function () {
+          autoSave();
+          checkDraft();
+        });
+    </script>
+  </body>
+</html>
