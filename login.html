@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskFlow - Connexion</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Connexion à TaskFlow</h2>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" value="e1@taskflow.com" required>
+            <input type="password" id="password" placeholder="Mot de passe" value="123456" required>
+            <button type="submit">Se connecter</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+
+            try {
+                const res = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    messageDiv.innerText = '❌ Erreur : ' + (data.message || 'Identifiants invalides');
+                    return;
+                }
+
+                localStorage.setItem('token', data.token);
+                messageDiv.innerText = '✅ Connexion réussie ! Redirection...';
+                setTimeout(() => {
+                    window.location.href = '/task-form.html';
+                }, 1500);
+            } catch (err) {
+                messageDiv.innerText = '❌ Erreur réseau : ' + err.message;
+            }
+        });
+    </script>
+</body>
+</html>
