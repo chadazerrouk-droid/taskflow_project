@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect: auth } = require("../middleware/authMiddleware").protect;
+const { protect: auth } = require('../middleware/authMiddleware');
 const {
   inviteMember,
   removeMember,
