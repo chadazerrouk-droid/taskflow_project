@@ -24,7 +24,7 @@
             const messageDiv = document.getElementById('message');
 
             try {
-                const res = await fetch('http://localhost:3000/api/auth/login', {
+                const res = await fetch('http://localhost:5000/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -33,23 +33,20 @@
                 const data = await res.json();
                 console.log("data reçue :", data);
                 console.log("message d'erreur :", data.message);
-                console.log("erreur complète :", data.error);
+                console.log("erreur complète :", data.error);  // ← Affiche l’erreur exacte dans la console
 
                 if (!res.ok) {
-                    // ← LIGNE 35 modifiée
-                    messageDiv.innerHTML = '<div class="message error">❌ Erreur : ' + (data.message || 'Identifiants invalides') + '</div>';
+                    messageDiv.innerText = '❌ Erreur : ' + (data.message || 'Identifiants invalides');
                     return;
                 }
 
                 localStorage.setItem('token', data.token);
-                // ← LIGNE 41 modifiée
-                messageDiv.innerHTML = '<div class="message success">✅ Connexion réussie ! Redirection...</div>';
+                messageDiv.innerText = '✅ Connexion réussie ! Redirection...';
                 setTimeout(() => {
-                    window.location.href = '/task-form';
+                    window.location.href = '/task-form.html';
                 }, 1500);
             } catch (err) {
-                // ← LIGNE 47 modifiée
-                messageDiv.innerHTML = '<div class="message error">❌ Erreur réseau : ' + err.message + '</div>';
+                messageDiv.innerText = '❌ Erreur réseau : ' + err.message;
             }
         });
     </script>
