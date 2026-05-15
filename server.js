@@ -6,9 +6,9 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
-const taskRoutes = require('./routes/taskRoutes');
-const dashboardRoutes = require('./routes/dashboardRoutes');
-const memberRoutes = require('./routes/memberRoutes');
+//const taskRoutes = require('./routes/taskRoutes');
+//const dashboardRoutes = require('./routes/dashboardRoutes');
+//const memberRoutes = require('./routes/memberRoutes');
 
 dotenv.config();
 connectDB();
@@ -27,8 +27,8 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+//app.use('/api/tasks', taskRoutes);
+//app.use('/api/dashboard', dashboardRoutes);
 // memberRoutes est déjà inclus dans projectRoutes, pas besoin de le remettre ici
 
 // Ajout (optionnel) venu de develop – ex: route health check
