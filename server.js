@@ -8,6 +8,8 @@ const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const memberRoutes = require('./routes/memberRoutes');
 const activityRoutes = require('./routes/activityRoutes');
+const tasks = require('./routes/tasks');
+// const dashboardRoutes = require('./routes/dashboardRoutes');
 
 dotenv.config();
 connectDB();
@@ -25,6 +27,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects', memberRoutes);
 app.use('/api/projects', activityRoutes);
+app.use('/api/tasks', tasks);
+// app.use('/api/dashboard', dashboardRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK' });
