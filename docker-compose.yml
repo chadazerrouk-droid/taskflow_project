@@ -1,27 +1,29 @@
 version: '3.8'
 
 services:
-  # Service pour la base de données
   mongodb:
-    image: mongo:6.0  # <--- CHANGÉ : On fixe la version 6 pour éviter les conflits
-    container_name: mongodb_taskflow
+    image: mongo:latest
+    container_name: taskflow-mongodb
+    restart: unless-stopped
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/data/db
+      - mongodb_data:/data/db
 
-  # Service pour ton application Node.js
   app:
     build: .
-    container_name: node_app_taskflow
+    container_name: taskflow-app
+    restart: unless-stopped
     ports:
-      - "5001:5001"
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/taskflow
-      - PORT=5001
-      - JWT_SECRET=monSuperSecretE5_2026
+      - "3000:3000"
     depends_on:
       - mongodb
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/taskflow
+      - PORT=3000
+    volumes:
+      - .:/app
+      - /app/node_modules
 
 volumes:
-  mongo-data:
+  mongodb_data:

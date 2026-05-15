@@ -1,20 +1,13 @@
-# Utilise une version stable de Node
-FROM node:20
+FROM node:18-alpine
 
-# Dossier de travail dans le conteneur
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Copie des fichiers de dépendances
 COPY package*.json ./
 
-# Installation des modules
 RUN npm install
 
-# Copie tout le reste du code
 COPY . .
 
-# Port exposé
-EXPOSE 5001
+EXPOSE 3000
 
-# Commande de démarrage
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
