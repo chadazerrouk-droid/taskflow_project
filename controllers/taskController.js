@@ -1,116 +1,125 @@
-const Task = require('../models/task');
-const Project = require('../models/Project');
+const Task = require('../models/Task');
+const Activity = require('../models/Activity');
 
-// @route   GET /api/tasks
-// @desc    Récupérer toutes les tâches (avec filtres projet/membre)
-const getTasks = async (req, res) => {
+// GET toutes les tâches d'un projet
+const getTasksByProject = async (req, res) => {
   try {
-    req.user = { id: "1" }; // ← temporaire, à enlever après
-    const { projectId } = req.query;
-    let filter = {};
-
-    if (projectId) {
-      filter.project = projectId;
-    } else {
-      // Par défaut, l'utilisateur voit les tâches des projets où il est owner ou membre
-      const projects = await Project.find().select('_id');
-      filter.project = { $in: projects.map(p => p._id) };
-    }
-
-   // Gestion du tri
-let sortCriteria = {};
-const { sort } = req.query;
-
-if (sort === 'priority') {
-  sortCriteria = { priority: -1 }; // haute → basse
-} else if (sort === 'dueDate') {
-  sortCriteria = { dueDate: 1 };   // plus proche → plus lointaine
-} else if (sort === 'priority+dueDate') {
-  sortCriteria = { priority: -1, dueDate: 1 };
-} else {
-  sortCriteria = { createdAt: -1 }; // tri par défaut
-}
-
-const tasks = await Task.find(filter)
-  .populate('project', 'title')
-  .populate('assignedTo', 'name email')
-  .sort(sortCriteria);
-
+    const tasks = await Task.find({ project: req.params.id })
+      .populate('assignedTo', 'name email');
     res.json(tasks);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
 
-// @route   POST /api/tasks
-// @desc    Créer une tâche
+// GET tâches assignées à l'utilisateur connecté
+const getMyTasks = async (req, res) => {
+  try {
+    const tasks = await Task.find({
+      assignedTo: req.user.id
+    }).populate('assignedTo', 'name email')
+      .populate('project', 'title');
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+// POST créer une tâche
 const createTask = async (req, res) => {
   try {
-    const { title, description, priority, project, assignedTo } = req.body;
+    const { title, description, priority, status, project, assignedTo, dueDate } = req.body;
+
     const task = await Task.create({
       title,
       description,
       priority,
+      status,
       project,
-      assignedTo
+      assignedTo,
+      dueDate
     });
+
+    await Activity.create({
+      actionType: 'TASK_CREATED',
+      project,
+      user: req.user.id,
+      description: `A créé la tâche : ${title}`
+    });
+
     res.status(201).json(task);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
 
-// @route   PUT /api/tasks/:id
-// @desc    Mettre à jour une tâche
+// PUT modifier une tâche
 const updateTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ message: 'Tâche non trouvée' });
 
-    const { title, description, priority, status, assignedTo } = req.body;
+    const { title, description, priority, status, assignedTo, dueDate } = req.body;
     task.title = title || task.title;
     task.description = description || task.description;
     task.priority = priority || task.priority;
     task.status = status || task.status;
     task.assignedTo = assignedTo || task.assignedTo;
+    task.dueDate = dueDate || task.dueDate;
 
     await task.save();
     res.json(task);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
 
-// @route   DELETE /api/tasks/:id
-// @desc    Supprimer une tâche
+// DELETE supprimer une tâche
 const deleteTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ message: 'Tâche non trouvée' });
+
+    await Activity.create({
+      actionType: 'TASK_DELETED',
+      project: task.project,
+      user: req.user.id,
+      description: `A supprimé la tâche : ${task.title}`
+    });
+
     await task.deleteOne();
     res.json({ message: 'Tâche supprimée' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
 
-// @route   PATCH /api/tasks/:id/status
-// @desc    Changer uniquement le statut
+// PATCH mettre à jour le statut uniquement
 const updateTaskStatus = async (req, res) => {
   try {
-    const { status } = req.body;
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ message: 'Tâche non trouvée' });
-    task.status = status;
+
+    const oldStatus = task.status;
+    task.status = req.body.status;
     await task.save();
+
+    await Activity.create({
+      actionType: 'TASK_STATUS_CHANGED',
+      project: task.project,
+      user: req.user.id,
+      description: `A changé le statut de "${oldStatus}" à "${task.status}"`
+    });
+
     res.json(task);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
 
 module.exports = {
-  getTasks,
+  getTasksByProject,
+  getMyTasks,
   createTask,
   updateTask,
   deleteTask,
