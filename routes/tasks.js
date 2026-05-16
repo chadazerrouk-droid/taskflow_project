@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const express = require("express");
 const router = express.Router({ mergeParams: true });
 const Task = require("../models/Task");
@@ -55,13 +56,64 @@ router.post("/", auth, validateTask, async (req, res) => {
       ...req.body,
       project: req.params.projectId,
     });
-    await task.save();
-    res.status(201).json(task);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+=======
+const express = require('express');
+const router = express.Router();
+const Task = require('../models/Task');   // ← majuscule
+const Project = require('../models/Project');
+const { protect } = require('../middleware/authMiddleware'); // ← ton vrai middleware
+const User = require('../models/User');
+
+// Toutes les routes nécessitent authentification
+router.use(protect);   // ← décommenté
+
+// GET /api/tasks?projectId=...
+router.get('/', async (req, res) => {
+  try {
+    const { projectId } = req.query;
+    if (!projectId) {
+      return res.status(400).json({ message: 'projectId est requis' });
+    }
+
+    const tasks = await Task.find({ project: projectId })
+      .populate('assignedTo', 'fullName email')
+      .sort({ createdAt: -1 });
+
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
+// POST /api/tasks
+router.post('/', async (req, res) => {
+  try {
+    const { title, priority, status, project: projectId, assignedTo } = req.body;
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: 'Projet introuvable' });
+    }
+
+    const task = new Task({
+      title,
+      priority: priority || 'basse',
+      status: status || 'à faire',
+      project: projectId,
+      assignedTo
+    });
+
+>>>>>>> origin/develop
+    await task.save();
+    await task.populate('assignedTo', 'fullName email');
+
+    res.status(201).json(task);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+<<<<<<< HEAD
 router.get("/:id", auth, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id).populate(
@@ -69,12 +121,31 @@ router.get("/:id", auth, async (req, res) => {
       "name email",
     );
     if (!task) return res.status(404).json({ message: "Tâche non trouvée" });
+=======
+// PUT /api/tasks/:id
+router.put('/:id', async (req, res) => {
+  try {
+    const { title, priority, status, assignedTo } = req.body;
+    const task = await Task.findById(req.params.id);
+
+    if (!task) return res.status(404).json({ message: 'Tâche introuvable' });
+
+    task.title = title ?? task.title;
+    task.priority = priority ?? task.priority;
+    task.status = status ?? task.status;
+    task.assignedTo = assignedTo ?? task.assignedTo;
+
+    await task.save();
+    await task.populate('assignedTo', 'fullName email');
+
+>>>>>>> origin/develop
     res.json(task);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
+<<<<<<< HEAD
 router.put("/:id", auth, validateTask, async (req, res) => {
   try {
     const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
@@ -106,12 +177,38 @@ router.patch("/:id/status", auth, validateStatusUpdate, async (req, res) => {
       { new: true },
     );
     if (!task) return res.status(404).json({ message: "Tâche non trouvée" });
-    res.json(task);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+=======
+// DELETE /api/tasks/:id
+router.delete('/:id', async (req, res) => {
+  try {
+    const task = await Task.findByIdAndDelete(req.params.id);
+    if (!task) return res.status(404).json({ message: 'Tâche introuvable' });
+    res.json({ message: 'Tâche supprimée' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
+// PATCH /api/tasks/:id/assign
+router.patch('/:id/assign', async (req, res) => {
+  try {
+    const { assignedTo } = req.body;
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      { assignedTo },
+      { new: true, runValidators: true }
+    ).populate('assignedTo', 'fullName email');
+
+    if (!task) return res.status(404).json({ message: 'Tâche non trouvée' });
+
+>>>>>>> origin/develop
+    res.json(task);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+<<<<<<< HEAD
 router.patch("/:id/assign", auth, async (req, res) => {
   try {
     const { userId } = req.body;
@@ -129,3 +226,6 @@ router.patch("/:id/assign", auth, async (req, res) => {
 });
 
 module.exports = router;
+=======
+module.exports = router;
+>>>>>>> origin/develop

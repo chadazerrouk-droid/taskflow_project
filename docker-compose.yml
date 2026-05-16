@@ -1,16 +1,29 @@
+version: '3.8'
+
 services:
   mongodb:
-    image: mongo:6
-    container_name: taskflow-mongo
-    restart: always
+    image: mongo:latest
+    container_name: taskflow-mongodb
+    restart: unless-stopped
     ports:
       - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: example
-      MONGO_INITDB_DATABASE: taskflow
     volumes:
-      - mongo-data:/data/db
+      - mongodb_data:/data/db
+
+  app:
+    build: .
+    container_name: taskflow-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/taskflow
+      - PORT=3000
+    volumes:
+      - .:/app
+      - /app/node_modules
 
 volumes:
-  mongo-data:
+  mongodb_data:
