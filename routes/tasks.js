@@ -1,23 +1,23 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-//const Task = require('../models/Task');   // ← majuscule
-const Project = require('../models/Project');
-const { protect } = require('../middleware/authMiddleware'); // ← ton vrai middleware
-const User = require('../models/User');
+const Task = require("../models/Task");
+const Project = require("../models/Project");
+const { protect } = require("../middleware/authMiddleware");
+const User = require("../models/User");
 
 // Toutes les routes nécessitent authentification
-router.use(protect);   // ← décommenté
+router.use(protect);
 
 // GET /api/tasks?projectId=...
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const { projectId } = req.query;
     if (!projectId) {
-      return res.status(400).json({ message: 'projectId est requis' });
+      return res.status(400).json({ message: "projectId est requis" });
     }
 
     const tasks = await Task.find({ project: projectId })
-      .populate('assignedTo', 'fullName email')
+      .populate("assignedTo", "fullName email")
       .sort({ createdAt: -1 });
 
     res.json(tasks);
@@ -27,25 +27,31 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/tasks
-router.post('/', async (req, res) => {
+router.post("/", async (req, res) => {
   try {
-    const { title, priority, status, project: projectId, assignedTo } = req.body;
+    const {
+      title,
+      priority,
+      status,
+      project: projectId,
+      assignedTo,
+    } = req.body;
 
     const project = await Project.findById(projectId);
     if (!project) {
-      return res.status(404).json({ message: 'Projet introuvable' });
+      return res.status(404).json({ message: "Projet introuvable" });
     }
 
     const task = new Task({
       title,
-      priority: priority || 'basse',
-      status: status || 'à faire',
+      priority: priority || "basse",
+      status: status || "à faire",
       project: projectId,
-      assignedTo
+      assignedTo,
     });
 
     await task.save();
-    await task.populate('assignedTo', 'fullName email');
+    await task.populate("assignedTo", "fullName email");
 
     res.status(201).json(task);
   } catch (err) {
@@ -54,12 +60,12 @@ router.post('/', async (req, res) => {
 });
 
 // PUT /api/tasks/:id
-router.put('/:id', async (req, res) => {
+router.put("/:id", async (req, res) => {
   try {
     const { title, priority, status, assignedTo } = req.body;
     const task = await Task.findById(req.params.id);
 
-    if (!task) return res.status(404).json({ message: 'Tâche introuvable' });
+    if (!task) return res.status(404).json({ message: "Tâche introuvable" });
 
     task.title = title ?? task.title;
     task.priority = priority ?? task.priority;
@@ -67,7 +73,7 @@ router.put('/:id', async (req, res) => {
     task.assignedTo = assignedTo ?? task.assignedTo;
 
     await task.save();
-    await task.populate('assignedTo', 'fullName email');
+    await task.populate("assignedTo", "fullName email");
 
     res.json(task);
   } catch (err) {
@@ -76,27 +82,42 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE /api/tasks/:id
-router.delete('/:id', async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
-    if (!task) return res.status(404).json({ message: 'Tâche introuvable' });
-    res.json({ message: 'Tâche supprimée' });
+    if (!task) return res.status(404).json({ message: "Tâche introuvable" });
+    res.json({ message: "Tâche supprimée" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
 // PATCH /api/tasks/:id/assign
-router.patch('/:id/assign', async (req, res) => {
+router.patch("/:id/assign", async (req, res) => {
   try {
     const { assignedTo } = req.body;
     const task = await Task.findByIdAndUpdate(
       req.params.id,
       { assignedTo },
-      { new: true, runValidators: true }
-    ).populate('assignedTo', 'fullName email');
+      { new: true, runValidators: true },
+    ).populate("assignedTo", "fullName email");
 
-    if (!task) return res.status(404).json({ message: 'Tâche non trouvée' });
+    if (!task) return res.status(404).json({ message: "Tâche non trouvée" });
+
+    res.json(task);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// PATCH /api/tasks/:id/status
+router.patch("/:id/status", async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: "Tâche introuvable" });
+
+    task.status = req.body.status;
+    await task.save();
 
     res.json(task);
   } catch (err) {
