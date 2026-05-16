@@ -1,15 +1,16 @@
 const mongoose = require('mongoose');
 
 const activitySchema = new mongoose.Schema({
-  type: {
+  actionType: {
     type: String,
     enum: [
-      'task_created',
-      'task_deleted',
-      'task_status_changed',
-      'member_added',
-      'member_removed',
-      'project_updated'
+      'PROJECT_CREATED',
+      'TASK_CREATED',
+      'TASK_DELETED',
+      'TASK_STATUS_CHANGED',
+      'MEMBER_ADDED',
+      'MEMBER_REMOVED',
+      'PROJECT_UPDATED'
     ],
     required: true
   },
