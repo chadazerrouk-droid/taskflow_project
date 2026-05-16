@@ -1,4 +1,9 @@
 const API_URL = "http://localhost:5000/api/tasks";
+const token = localStorage.getItem("token");
+const headers = {
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${token}`,
+};
 
 let currentPage = 1;
 const LIMIT = 5;
@@ -7,14 +12,12 @@ async function loadTasks() {
   const search = document.getElementById("searchInput")?.value || "";
   const status = document.getElementById("statusSelect")?.value || "";
   const priority = document.getElementById("prioritySelect")?.value || "";
-
   let url = `${API_URL}?page=${currentPage}&limit=${LIMIT}`;
   if (search) url += `&search=${encodeURIComponent(search)}`;
   if (status) url += `&status=${encodeURIComponent(status)}`;
   if (priority) url += `&priority=${priority}`;
-
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { headers });
     const data = await res.json();
     displayTasks(data.data || []);
     displayPagination(data.page, data.totalPages);
@@ -31,7 +34,6 @@ function displayTasks(tasks) {
     container.innerHTML = "<p>Aucune tâche trouvée.</p>";
     return;
   }
-
   container.innerHTML = tasks
     .map(
       (task) => `
@@ -68,7 +70,7 @@ function displayPagination(current, total) {
 
 window.deleteTask = async (id) => {
   if (confirm("Supprimer cette tâche ?")) {
-    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    await fetch(`${API_URL}/${id}`, { method: "DELETE", headers });
     loadTasks();
   }
 };
@@ -76,7 +78,7 @@ window.deleteTask = async (id) => {
 window.updateStatus = async (id, newStatus) => {
   await fetch(`${API_URL}/${id}/status`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ status: newStatus }),
   });
   loadTasks();
