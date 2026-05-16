@@ -7,13 +7,11 @@ const getDashboard = async (req, res) => {
     const userId = new mongoose.Types.ObjectId(req.user.id);
     const now = new Date();
 
-    // Projets actifs (countDocuments accepté car c'est sur Project, pas Task)
     const activeProjects = await Project.countDocuments({
       $or: [{ owner: userId }, { members: userId }],
       status: 'actif'
     });
 
-    // Pipeline d'agrégation MongoDB pour les métriques des tâches
     const taskMetrics = await Task.aggregate([
       {
         $match: { assignedTo: userId }
@@ -43,8 +41,6 @@ const getDashboard = async (req, res) => {
       }
     ]);
 
-    // Tâches en cours triées par priorité décroissante puis dueDate croissante
-    const priorityOrder = { haute: 1, moyenne: 2, basse: 3 };
     const inProgressTasks = await Task.find({
       assignedTo: userId,
       status: 'en cours'
@@ -52,6 +48,7 @@ const getDashboard = async (req, res) => {
       .populate('project', 'title')
       .sort({ dueDate: 1 });
 
+    const priorityOrder = { haute: 1, moyenne: 2, basse: 3 };
     inProgressTasks.sort((a, b) => {
       const pa = priorityOrder[a.priority] || 99;
       const pb = priorityOrder[b.priority] || 99;
