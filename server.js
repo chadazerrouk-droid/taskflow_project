@@ -7,9 +7,9 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const memberRoutes = require('./routes/memberRoutes');
-const activityRoutes = require('./routes/activityRoutes');
+//const activityRoutes = require('./routes/activityRoutes');
 const tasks = require('./routes/tasks');
-const dashboardRoutes = require('./routes/dashboardRoutes');
+//const dashboardRoutes = require('./routes/dashboardRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 
 dotenv.config();
@@ -21,7 +21,7 @@ app.use(express.json());
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
-  res.send('API TaskFlow est en ligne 🚀');
+  res.send('API TaskFlow est en ligne ');
 });
 
 app.use('/api/auth', authRoutes);
