@@ -1,104 +1,120 @@
 const API_URL = "http://localhost:5000/api/tasks";
-const token = localStorage.getItem("token");
-const headers = {
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${token}`,
-};
 
-let currentPage = 1;
-const LIMIT = 5;
-
-async function loadTasks() {
-  const search = document.getElementById("searchInput")?.value || "";
-  const status = document.getElementById("statusSelect")?.value || "";
-  const priority = document.getElementById("prioritySelect")?.value || "";
-  let url = `${API_URL}?page=${currentPage}&limit=${LIMIT}`;
-  if (search) url += `&search=${encodeURIComponent(search)}`;
-  if (status) url += `&status=${encodeURIComponent(status)}`;
-  if (priority) url += `&priority=${priority}`;
-  try {
-    const res = await fetch(url, { headers });
-    const data = await res.json();
-    displayTasks(data.data || []);
-    displayPagination(data.page, data.totalPages);
-  } catch (err) {
-    console.error("Erreur:", err);
-    document.getElementById("tasksList").innerHTML =
-      "<p>❌ Erreur chargement</p>";
-  }
+function getToken() {
+  return localStorage.getItem("token");
 }
 
-function displayTasks(tasks) {
-  const container = document.getElementById("tasksList");
-  if (!tasks.length) {
-    container.innerHTML = "<p>Aucune tâche trouvée.</p>";
+function getHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${getToken()}`
+  };
+}
+
+function getDraftKey(projectId) {
+  return "task_draft_" + projectId;
+}
+
+function autoSave() {
+  const projectId = document.getElementById("projectId").value.trim();
+  if (!projectId) return;
+
+  const draft = {
+    title: document.getElementById("title").value,
+    description: document.getElementById("description").value,
+    priority: document.getElementById("priority").value,
+    status: document.getElementById("status").value,
+    projectId,
+    date: new Date().toISOString()
+  };
+
+  localStorage.setItem(getDraftKey(projectId), JSON.stringify(draft));
+}
+
+function checkDraft() {
+  const projectId = document.getElementById("projectId").value.trim();
+  if (!projectId) return;
+
+  const saved = localStorage.getItem(getDraftKey(projectId));
+  document.getElementById("restoreBox").style.display = saved ? "block" : "none";
+}
+
+function restoreDraft() {
+  const projectId = document.getElementById("projectId").value.trim();
+  const saved = localStorage.getItem(getDraftKey(projectId));
+  if (!saved) return;
+
+  const draft = JSON.parse(saved);
+  document.getElementById("title").value = draft.title || "";
+  document.getElementById("description").value = draft.description || "";
+  document.getElementById("priority").value = draft.priority || "moyenne";
+  document.getElementById("status").value = draft.status || "à faire";
+  document.getElementById("restoreBox").style.display = "none";
+  showMessage("success", "Brouillon restauré ✅");
+}
+
+function discardDraft() {
+  const projectId = document.getElementById("projectId").value.trim();
+  localStorage.removeItem(getDraftKey(projectId));
+  document.getElementById("restoreBox").style.display = "none";
+  showMessage("success", "Brouillon ignoré");
+}
+
+function showMessage(type, text) {
+  const msgDiv = document.getElementById("message");
+  msgDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+  setTimeout(() => { msgDiv.innerHTML = ""; }, 3000);
+}
+
+async function submitTask(e) {
+  e.preventDefault();
+
+  const projectId = document.getElementById("projectId").value.trim();
+  const taskData = {
+    title: document.getElementById("title").value,
+    description: document.getElementById("description").value,
+    priority: document.getElementById("priority").value,
+    status: document.getElementById("status").value,
+    project: projectId
+  };
+
+  if (!taskData.title || !taskData.project) {
+    showMessage("error", "Le titre et l'ID projet sont obligatoires");
     return;
   }
-  container.innerHTML = tasks
-    .map(
-      (task) => `
-        <div class="task-card">
-            <strong>📌 ${escapeHtml(task.title)}</strong> (${task.priority}) - ${task.status}<br>
-            📁 Projet: ${task.project}<br>
-            👤 Assignée à: ${task.assignedTo || "non assignée"}<br>
-            🕒 Créée le: ${new Date(task.createdAt).toLocaleDateString()}<br>
-            <button onclick="deleteTask('${task._id}')" class="danger">🗑️ Supprimer</button>
-            <button onclick="updateStatus('${task._id}', 'en cours')" class="success">🔄 En cours</button>
-            <button onclick="updateStatus('${task._id}', 'terminé')" class="success">✅ Terminer</button>
-            <a href="task-form.html?id=${task._id}">✏️ Modifier</a>
-        </div>
-    `,
-    )
-    .join("");
-}
 
-function displayPagination(current, total) {
-  const container = document.getElementById("paginationControls");
-  if (!container) return;
-  container.innerHTML = "";
-  for (let i = 1; i <= total; i++) {
-    const btn = document.createElement("button");
-    btn.textContent = i;
-    btn.disabled = i === current;
-    btn.onclick = () => {
-      currentPage = i;
-      loadTasks();
-    };
-    container.appendChild(btn);
-  }
-}
-
-window.deleteTask = async (id) => {
-  if (confirm("Supprimer cette tâche ?")) {
-    await fetch(`${API_URL}/${id}`, { method: "DELETE", headers });
-    loadTasks();
-  }
-};
-
-window.updateStatus = async (id, newStatus) => {
-  await fetch(`${API_URL}/${id}/status`, {
-    method: "PATCH",
-    headers,
-    body: JSON.stringify({ status: newStatus }),
-  });
-  loadTasks();
-};
-
-function escapeHtml(str) {
-  return str.replace(/[&<>]/g, function (m) {
-    if (m === "&") return "&amp;";
-    if (m === "<") return "&lt;";
-    if (m === ">") return "&gt;";
-    return m;
-  });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const applyBtn = document.getElementById("applyFiltersBtn");
-  if (applyBtn)
-    applyBtn.addEventListener("click", () => {
-      currentPage = 1;
-      loadTasks();
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: getHeaders(),  // ← token JWT inclus
+      body: JSON.stringify(taskData)
     });
-  loadTasks();
+
+    if (response.ok) {
+      const result = await response.json();
+      showMessage("success", "Tâche créée ! ID: " + result._id);
+      localStorage.removeItem(getDraftKey(projectId));
+
+      // Reset formulaire
+      document.getElementById("taskForm").reset();
+    } else {
+      const error = await response.json();
+      showMessage("error", "Erreur: " + error.message);
+    }
+  } catch (err) {
+    showMessage("error", "Erreur réseau: " + err.message);
+  }
+}
+
+// Events
+document.getElementById("taskForm").addEventListener("submit", submitTask);
+document.getElementById("restoreBtn").addEventListener("click", restoreDraft);
+document.getElementById("discardBtn").addEventListener("click", discardDraft);
+document.getElementById("title").addEventListener("input", autoSave);
+document.getElementById("description").addEventListener("input", autoSave);
+document.getElementById("priority").addEventListener("change", autoSave);
+document.getElementById("status").addEventListener("change", autoSave);
+document.getElementById("projectId").addEventListener("input", () => {
+  autoSave();
+  checkDraft();
 });
