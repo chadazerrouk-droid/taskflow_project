@@ -67,10 +67,15 @@ exports.removeMember = async (req, res) => {
 exports.getMembers = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
-      .populate('members', 'fullName email');
+      .populate('members', 'fullName email')
+      .populate('owner', 'fullName email');
+
     if (!project) return res.status(404).json({ message: 'Projet non trouvé' });
 
-    res.status(200).json(project.members);
+    res.status(200).json({
+      owner: project.owner,
+      members: project.members
+    });
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
