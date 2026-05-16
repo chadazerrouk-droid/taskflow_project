@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router({ mergeParams: true });
 const Task = require('../models/Task');
 const Project = require('../models/Project');
-const auth = require('../middleware/auth');
+const { protect } = require('../middleware/authMiddleware');
 const { validateTask, validateStatusUpdate } = require('../middleware/validateTask');
 
 // Toutes les routes sont protégées
-router.use(auth);
+router.use(protect);
 
 // GET /api/tasks  ou  GET /api/projects/:projectId/tasks
 router.get('/', async (req, res) => {
