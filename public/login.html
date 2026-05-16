@@ -33,20 +33,23 @@
                 const data = await res.json();
                 console.log("data reçue :", data);
                 console.log("message d'erreur :", data.message);
-                console.log("erreur complète :", data.error);  // ← Affiche l’erreur exacte dans la console
+                console.log("erreur complète :", data.error);
 
                 if (!res.ok) {
-                    messageDiv.innerText = '❌ Erreur : ' + (data.message || 'Identifiants invalides');
+                    // ← LIGNE 35 modifiée
+                    messageDiv.innerHTML = '<div class="message error">❌ Erreur : ' + (data.message || 'Identifiants invalides') + '</div>';
                     return;
                 }
 
                 localStorage.setItem('token', data.token);
-                messageDiv.innerText = '✅ Connexion réussie ! Redirection...';
+                // ← LIGNE 41 modifiée
+                messageDiv.innerHTML = '<div class="message success">✅ Connexion réussie ! Redirection...</div>';
                 setTimeout(() => {
                     window.location.href = '/task-form.html';
                 }, 1500);
             } catch (err) {
-                messageDiv.innerText = '❌ Erreur réseau : ' + err.message;
+                // ← LIGNE 47 modifiée
+                messageDiv.innerHTML = '<div class="message error">❌ Erreur réseau : ' + err.message + '</div>';
             }
         });
     </script>
