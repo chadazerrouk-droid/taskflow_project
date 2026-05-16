@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router({ mergeParams: true });
 const Task = require('../models/Task');
 const Project = require('../models/Project');
-const { protect } = require('../middleware/authMiddleware');
+const auth = require('../middleware/authMiddleware').protect;
 const { validateTask, validateStatusUpdate } = require('../middleware/validateTask');
 
 // Toutes les routes sont protégées
-router.use(protect);
+router.use(auth);
 
 // GET /api/tasks  ou  GET /api/projects/:projectId/tasks
 router.get('/', async (req, res) => {
@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit))
       .populate('assignedTo', 'name email')
-      .sort({ priority: -1, dueDate: 1 });
+      .sort({ createdAt: -1 });
 
     res.json({ data: tasks, total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)) });
   } catch (err) {
