@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit))
       .populate('assignedTo', 'name email')
-      .sort({ createdAt: -1 });
+      .sort({ priority: -1, dueDate: 1 });
 
     res.json({ data: tasks, total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)) });
   } catch (err) {

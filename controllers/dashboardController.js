@@ -1,5 +1,5 @@
 const Project = require('../models/Project');
-const Task = require('../models/task');
+const Task = require('../models/Task');
 
 // @route   GET /api/dashboard
 // @desc    Récupérer les métriques pour le tableau de bord
@@ -28,7 +28,7 @@ const getDashboard = async (req, res) => {
     const now = new Date();
     const lateTasks = await Task.countDocuments({
       assignedTo: userId,
-      deadline: { $lt: now },
+      dueDate: { $lt: now },
       status: { $ne: 'terminé' }
     });
 
