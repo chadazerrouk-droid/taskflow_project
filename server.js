@@ -1,9 +1,10 @@
-global.crypto = require('crypto');
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const connectDB = require('./config/db');
+global.crypto = require("crypto");
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const connectDB = require("./config/db");
 
+<<<<<<< HEAD
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const memberRoutes = require('./routes/memberRoutes');
@@ -11,6 +12,14 @@ const memberRoutes = require('./routes/memberRoutes');
 const tasks = require('./routes/tasks');
 //const dashboardRoutes = require('./routes/dashboardRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+=======
+const authRoutes = require("./routes/authRoutes");
+const projectRoutes = require("./routes/projectRoutes");
+const memberRoutes = require("./routes/memberRoutes");
+const activityRoutes = require("./routes/activityRoutes");
+const tasks = require("./routes/tasks");
+// const dashboardRoutes = require('./routes/dashboardRoutes');
+>>>>>>> 40ffc933ce26fcb1ea118c0876655dad1e7e54b7
 
 dotenv.config();
 connectDB();
@@ -18,7 +27,8 @@ connectDB();
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static("public"));
+
 
 app.get('/', (req, res) => {
   res.send('API TaskFlow est en ligne ');
@@ -31,9 +41,22 @@ app.use('/api/projects', activityRoutes);
 app.use('/api/tasks', tasks);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/notifications', notificationRoutes);
+=======
+app.get("/", (req, res) => {
+  res.send("API TaskFlow est en ligne 🚀");
+});
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK' });
+app.use("/api/auth", authRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/projects", memberRoutes);
+app.use("/api/projects", activityRoutes);
+app.use("/api/projects/:projectId/tasks", tasks);
+app.use("/api/tasks", tasks);
+// app.use('/api/dashboard', dashboardRoutes);
+
+
+app.get("/api/health", (req, res) => {
+  res.json({ status: "OK" });
 });
 
 const PORT = process.env.PORT || 3000;
