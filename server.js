@@ -10,6 +10,7 @@ const memberRoutes = require('./routes/memberRoutes');
 const activityRoutes = require('./routes/activityRoutes');
 const tasks = require('./routes/tasks');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 dotenv.config();
 connectDB();
@@ -29,6 +30,7 @@ app.use('/api/projects', memberRoutes);
 app.use('/api/projects', activityRoutes);
 app.use('/api/tasks', tasks);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK' });
