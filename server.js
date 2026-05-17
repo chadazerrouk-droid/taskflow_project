@@ -1,41 +1,45 @@
-global.crypto = require('crypto');
 const express = require('express');
-const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const cors = require('cors');
+const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 
-const authRoutes = require('./routes/authRoutes');
-const projectRoutes = require('./routes/projectRoutes');
-const memberRoutes = require('./routes/memberRoutes');
-const activityRoutes = require('./routes/activityRoutes');
-const tasks = require('./routes/tasks');
-const notificationRoutes = require('./routes/notificationRoutes');
-
 dotenv.config();
-connectDB();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
 
-app.get('/', (req, res) => {
-  res.send('API TaskFlow est en ligne 🚀');
-});
+// Routes
+const authRoutes = require('./routes/authRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const taskRoutes = require('./routes/taskRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const memberRoutes = require('./routes/memberRoutes');
+const activityRoutes = require('./routes/activityRoutes');
+const tasks = require('./routes/tasks');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects', memberRoutes);
 app.use('/api/projects', activityRoutes);
 app.use('/api/projects/:projectId/tasks', tasks);
-app.use('/api/tasks', tasks);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/notifications', notificationRoutes);
-
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK' });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`✅ Serveur démarré sur http://localhost:${PORT}`);
-});
+// Connexion MongoDB
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('✅ MongoDB connecté');
+    app.listen(process.env.PORT || 5000, () => {
+      console.log(`✅ Serveur démarré sur le port ${process.env.PORT || 5000}`);
+    });
+  })
+  .catch((err) => {
+    console.error('❌ Erreur MongoDB :', err.message);
+  });

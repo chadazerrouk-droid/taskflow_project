@@ -3,13 +3,21 @@ const fs = require('fs');
 const path = require('path');
 
 const server = http.createServer((req, res) => {
-  // Nettoyer l'URL : on enlève tout ce qui est après le '?'
   const cleanUrl = req.url.split('?')[0];
-  console.log('URL demandée (nettoyée) :', cleanUrl);
+  console.log('URL demandée :', cleanUrl);
 
-  // Servir le formulaire HTML (task-form)
-  if (cleanUrl === '/' || cleanUrl === '/task-form') {
-    const filePath = path.join(__dirname, 'public', 'task-form.html');
+  const pages = {
+    '/': 'login.html',
+    '/login': 'login.html',
+    '/task-form': 'task-form.html',
+    '/dashboard': 'dashboard.html',
+    '/tasks': 'tasks.html',
+    '/project-details': 'project-details.html',
+    '/test': 'test.html'
+  };
+
+  if (pages[cleanUrl]) {
+    const filePath = path.join(__dirname, 'public', pages[cleanUrl]);
     fs.readFile(filePath, (err, data) => {
       if (err) {
         res.writeHead(404);
@@ -19,47 +27,19 @@ const server = http.createServer((req, res) => {
         res.end(data);
       }
     });
-  } 
-  // Servir la page de connexion
-  else if (cleanUrl === '/login') {
-    const filePath = path.join(__dirname, 'public', 'login.html');
+  } else if (cleanUrl.endsWith('.js')) {
+    const filePath = path.join(__dirname, 'public', cleanUrl);
     fs.readFile(filePath, (err, data) => {
-      if (err) {
-        res.writeHead(404);
-        res.end('Fichier login.html non trouvé');
-      } else {
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(data);
-      }
+      if (err) { res.writeHead(404); res.end('JS non trouvé'); }
+      else { res.writeHead(200, { 'Content-Type': 'application/javascript' }); res.end(data); }
     });
-  }
-  // Servir le JavaScript (task-form.js)
-  else if (cleanUrl === '/task-form.js') {
-    const filePath = path.join(__dirname, 'public', 'task-form.js');
+  } else if (cleanUrl.endsWith('.css')) {
+    const filePath = path.join(__dirname, 'public', cleanUrl);
     fs.readFile(filePath, (err, data) => {
-      if (err) {
-        res.writeHead(404);
-        res.end('Fichier JS non trouvé');
-      } else {
-        res.writeHead(200, { 'Content-Type': 'application/javascript' });
-        res.end(data);
-      }
+      if (err) { res.writeHead(404); res.end('CSS non trouvé'); }
+      else { res.writeHead(200, { 'Content-Type': 'text/css' }); res.end(data); }
     });
-  }
-  // Servir le CSS
-  else if (cleanUrl === '/style.css') {
-    const filePath = path.join(__dirname, 'public', 'style.css');
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
-        res.writeHead(404);
-        res.end('CSS non trouvé');
-      } else {
-        res.writeHead(200, { 'Content-Type': 'text/css' });
-        res.end(data);
-      }
-    });
-  }
-  else {
+  } else {
     res.writeHead(404);
     res.end('Page non trouvée');
   }
@@ -67,6 +47,5 @@ const server = http.createServer((req, res) => {
 
 const PORT = 3001;
 server.listen(PORT, () => {
-  console.log(`✅ Serveur frontend sur http://localhost:${PORT}/task-form`);
-  console.log(`🔐 Page login sur http://localhost:${PORT}/login`);
+  console.log(`✅ Serveur frontend sur http://localhost:${PORT}`);
 });

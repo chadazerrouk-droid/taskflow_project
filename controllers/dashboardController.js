@@ -1,43 +1,75 @@
 const Project = require('../models/Project');
 const Task = require('../models/Task');
+const mongoose = require('mongoose');
 
-// @route   GET /api/dashboard
-// @desc    Récupérer les métriques pour le tableau de bord
 const getDashboard = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+    const now = new Date();
 
-    // 1. Projets actifs (où l'utilisateur est owner ou membre)
     const activeProjects = await Project.countDocuments({
       $or: [{ owner: userId }, { members: userId }],
       status: 'actif'
     });
 
-    // 2. Tâches assignées à l'utilisateur
-    const assignedTasks = await Task.countDocuments({
-      assignedTo: userId
+    const taskMetrics = await Task.aggregate([
+      {
+        $match: { assignedTo: userId }
+      },
+      {
+        $group: {
+          _id: null,
+          assignedTasks: { $sum: 1 },
+          completedTasks: {
+            $sum: { $cond: [{ $eq: ['$status', 'terminé'] }, 1, 0] }
+          },
+          lateTasks: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $lt: ['$dueDate', now] },
+                    { $ne: ['$status', 'terminé'] }
+                  ]
+                },
+                1,
+                0
+              ]
+            }
+          }
+        }
+      }
+    ]);
+
+    const inProgressTasks = await Task.find({
+      assignedTo: userId,
+      status: 'en cours'
+    })
+      .populate('project', 'title')
+      .sort({ dueDate: 1 });
+
+    const priorityOrder = { haute: 1, moyenne: 2, basse: 3 };
+    inProgressTasks.sort((a, b) => {
+      const pa = priorityOrder[a.priority] || 99;
+      const pb = priorityOrder[b.priority] || 99;
+      if (pa !== pb) return pa - pb;
+      return new Date(a.dueDate) - new Date(b.dueDate);
     });
 
-    // 3. Tâches terminées assignées à l'utilisateur
-    const completedTasks = await Task.countDocuments({
-      assignedTo: userId,
-      status: 'terminé'
-    });
-
-    // 4. Tâches en retard (deadline dépassée, non terminées)
-    const now = new Date();
-    const lateTasks = await Task.countDocuments({
-      assignedTo: userId,
-      dueDate: { $lt: now },
-      status: { $ne: 'terminé' }
-    });
+    const metrics = taskMetrics[0] || {
+      assignedTasks: 0,
+      completedTasks: 0,
+      lateTasks: 0
+    };
 
     res.json({
       activeProjects,
-      assignedTasks,
-      completedTasks,
-      lateTasks
+      assignedTasks: metrics.assignedTasks,
+      completedTasks: metrics.completedTasks,
+      lateTasks: metrics.lateTasks,
+      inProgressTasks
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -24,7 +24,7 @@
             const messageDiv = document.getElementById('message');
 
             try {
-                const res = await fetch('http://localhost:5000/api/auth/login', {
+                const res = await fetch('http://localhost:3000/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -45,7 +45,7 @@
                 // ← LIGNE 41 modifiée
                 messageDiv.innerHTML = '<div class="message success">✅ Connexion réussie ! Redirection...</div>';
                 setTimeout(() => {
-                    window.location.href = '/task-form.html';
+                    window.location.href = '/task-form';
                 }, 1500);
             } catch (err) {
                 // ← LIGNE 47 modifiée
