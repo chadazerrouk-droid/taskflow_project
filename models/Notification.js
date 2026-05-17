@@ -11,13 +11,13 @@ const notificationSchema = new mongoose.Schema({
         required: true,
     },
     type: {
-        type:String,
+        type: String,
         default: "info"
     },
     read: {
         type: Boolean,
         default: false
-    },
-    
-},{ timestamps: true });
-module.exports = mongoose.model("Notification",notificationSchema);
+    }
+}, { timestamps: true });
+
+module.exports = mongoose.model("Notification", notificationSchema);
